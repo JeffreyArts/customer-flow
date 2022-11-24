@@ -202,15 +202,24 @@ export default defineComponent({
     transition: $transitionDefault;
     
     &.__isRight {
-        justify-content: flex-end;
+        > .speech-bubble {
+            transform: translateX(calc(100% + 64px));
+        }
     }
+
+    &.__isLeft {
+        > .info-box {
+            transform: translateX(0%);
+        }
+    }
+    
     
     > .speech-bubble {
         transition: $transitionDefault;
+        margin-left: 0;
+        // transform: translateX(calc(50% + 32px));
+        transform: translateX(0%);
         width: calc(50% - 32px);
-        &.__isRight {
-            float: right;
-        }
     }
 
     + .communication-block-add-section-container {

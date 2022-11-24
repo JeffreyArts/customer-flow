@@ -42,13 +42,15 @@ export default defineComponent({
             flows,
         }
     },
+    created() {
+        
+        // this.$on('update:flows', ()=> {
+        //     console.log("Update flows")
+        // })
+    },
     mounted() {
         this.flows.getAll().then((flows) => {
-            for (let i = 0; i < flows.length; i++) {
-                this.flowArray.push(flows[i])
-            }
-            
-            console.log(this.flowArray)
+            this.flowArray = this.flows.flows
         })
     },
     unmounted() {

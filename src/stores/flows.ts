@@ -12,10 +12,16 @@ export const flowsDataStore = defineStore({
         flowId: "",
     }),
     actions: {
-        add: async (flow: flowObject) => {
-            db.put(flow)
+        add(flow: flowObject):Promise<flowObject>  {
+            return new Promise((resolve, reject) => {
+                db.put(flow).then(() => {
+                    this.flows.push(flow)
+                    resolve(flow)
+                }).catch(reject)
+            })
         },  
         load(flowId: string):Promise<flowObject>{
+            console.log(flowId)
             return db.get(flowId)
         },
         getAll(filter?: {finished?: false}) :Promise<Array<flowObject>> {
@@ -23,7 +29,7 @@ export const flowsDataStore = defineStore({
                 db.allDocs({
                     include_docs: true,
                     attachments: true
-                }).then(function (result) {
+                }).then((result) => {
                     let rows = _.map(result.rows, row => { return row.doc}) as Array<flowObject> 
                     
                     if (filter) {
@@ -31,7 +37,7 @@ export const flowsDataStore = defineStore({
                             return row
                         }))
                     }
-                    // console.log("rows",rows, filter)
+                    this.flows = rows;
                     return resolve(rows)
                 }).catch(reject)
             })

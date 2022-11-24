@@ -36,7 +36,7 @@
             color: '#fff',
             bgcolor: '#f09',
         }]" v-model="buttonText" />
-        
+        &nbsp;
         <toggle :options="[{
             id:'123',
             name: '👁️',
@@ -52,7 +52,7 @@
         <br/><br/>
 
 
-        <input type="text" placeholder="test" class="input">
+        <input type="text" placeholder="test" class="input"> &nbsp;
         <input type="text" placeholder="test" class="input large">
         <br/><br/>
         <textarea name="" id="" cols="30" rows="10" class="input"></textarea>

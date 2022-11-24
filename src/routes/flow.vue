@@ -55,7 +55,7 @@
             </div>
 
             
-
+<!-- 
 
             <InfoBlock
                 :options="{userA: flow.userA, userB: flow.userB}" 
@@ -70,34 +70,34 @@
                 :type="view.b"
                 />
             <InfoBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
-                v-model="c"
-                :cancel="() => {view.c = '';}"
-                :success="() => {view.c = 'view';}"
-                :type="view.c"
-            />
-
-            
-            <!-- 
-            <CommunicationBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
-                v-model="a"
-                :type="view.a"
-            />
-            <CommunicationBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
-                v-model="b"
-                :cancel="() => {view.b = 'view';}"
-                :success="() => {view.b = 'view';}"
-                :type="view.b"
-                />
-            <CommunicationBlock
                 :options="{userA: flow.userA, userB: flow.userB}" 
                 v-model="c"
                 :cancel="() => {view.c = '';}"
                 :success="() => {view.c = 'view';}"
                 :type="view.c"
             /> -->
+
+            
+            
+            <CommunicationBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="a"
+                :type="view.a"
+            />
+            <CommunicationBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="b"
+                :cancel="() => {view.b = 'view';}"
+                :success="() => {view.b = 'view';}"
+                :type="view.b"
+                />
+            <CommunicationBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="c"
+                :cancel="() => {view.c = '';}"
+                :success="() => {view.c = 'view';}"
+                :type="view.c"
+            />
         </div>
     </div>
 </template>
@@ -154,16 +154,17 @@ export default defineComponent ({
         }
     },
     watch: {
+        $route: {
+            immediate: true,
+            handler() {
+                this.loadFlow()
+            }
+        }
     },
-    created() {
-        this.loadFlow()
-    },
-
     mounted() {
     },
     methods: {
         loadFlow() {
-            // load flow from route parameter flowId
             this.flows.load(this.$route.params.flowId).then((flow) => {
                 this.flow = flow;
             })

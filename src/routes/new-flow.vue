@@ -99,7 +99,7 @@ export default defineComponent ({
                 userB: this.userB.value,
                 interaction: this.interaction.value,
                 scheme: []
-            }).then(() => {                
+            }).then(() => {
                 this.$router.push({path: "/"});
             })
         }
