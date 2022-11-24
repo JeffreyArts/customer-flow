@@ -57,6 +57,28 @@
             
 
 
+            <InfoBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="a"
+                :type="view.a"
+            />
+            <InfoBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="b"
+                :cancel="() => {view.b = 'view';}"
+                :success="() => {view.b = 'view';}"
+                :type="view.b"
+                />
+            <InfoBlock
+                :options="{userA: flow.userA, userB: flow.userB}" 
+                v-model="c"
+                :cancel="() => {view.c = '';}"
+                :success="() => {view.c = 'view';}"
+                :type="view.c"
+            />
+
+            
+            <!-- 
             <CommunicationBlock
                 :options="{userA: flow.userA, userB: flow.userB}" 
                 v-model="a"
@@ -75,7 +97,7 @@
                 :cancel="() => {view.c = '';}"
                 :success="() => {view.c = 'view';}"
                 :type="view.c"
-            />
+            /> -->
         </div>
     </div>
 </template>
@@ -86,12 +108,13 @@ import {defineComponent} from "vue"
 import { flowObject, ToggleOptions } from "../../types";
 import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
+import InfoBlock from "../components/info-block.vue"
 import Flows from "../stores/flows";
 import { Icon } from '@iconify/vue';
 
 export default defineComponent ({ 
     name: "homePage",
-    components: {Toggle, Icon, CommunicationBlock},
+    components: {Toggle, Icon, CommunicationBlock, InfoBlock},
     props: [],
     setup() {
         const flows = Flows()

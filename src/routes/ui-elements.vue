@@ -72,6 +72,10 @@
         <div class="speech-bubble __isRight">
             Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia maxime magni officia velit ratione similique assumenda excepturi, rerum quam quod eveniet, neque, eum in. Est vitae voluptatem incidunt eveniet provident!
         </div>
+        <br/><br/>
+        <div class="info-box">
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quia maxime magni officia velit ratione similique assumenda excepturi, rerum quam quod eveniet, neque, eum in. Est vitae voluptatem incidunt eveniet provident!
+        </div>
     </div>
 </template>
 
