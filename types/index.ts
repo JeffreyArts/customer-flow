@@ -9,39 +9,40 @@ export interface ToggleOptions {
 export interface flowObject {
   _id?: string; // Hex
   _rev?: string; // Hex
-  userA: string;
+  userA: string;  
   userB: string;
   interaction: string;
   description?: string;
-  scheme: [flowScheme?];
+  scheme: [flowSchemeOption | flowSchemeCommunication | flowSchemeInfo];
 }
 
-export interface flowScheme {
-  type: 'option' | 'communication' | 'info';
-  details: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo;
-}
 
 export interface flowSchemeOption {
-  parentId: string;
+  parentId: string | undefined;
+  type: 'option';
   options: [
     {
       id: string;
       name: string;
     }
   ]
+  editType?: "add" | "edit" | "view";
 }
 
 export interface flowSchemeCommunication {
   id: string;
-  parentId: string;
+  type: 'communication';
+  parentId: string | undefined;
   position: "userA" | "userB";
   content: string;
+  editType?: "add" | "edit" | "view";
 }
 
 export interface flowSchemeInfo {
   id: string;
-  parentId: string;
+  type: 'info';
+  parentId: string | undefined;
   content: string;
   position: "userA" | "userB" | "both";
-
+  editType?: "add" | "edit" | "view";
 }

@@ -33,7 +33,7 @@
             </div>
 
 
-            <div class="flow-modify-buttons" v-if="mode == 'edit'">
+            <div class="flow-modify-buttons" v-if="mode == 'edit' && flow.scheme.length == 0">
                 <span class="flow-modify-button">
                     <button class="button">
                         <Icon icon="material-symbols:add-rounded" />
@@ -41,17 +41,43 @@
                     </button>
                 </span>
                 <span class="flow-modify-button">
-                    <button class="button" @click="editCommunicationBlock=true">
+                    <button class="button" @click="addBlock('communication')">
                         <Icon icon="material-symbols:add-rounded" />
                         Commmunicatie blok toevoegen
                     </button>
                 </span>
                 <span class="flow-modify-button">
-                    <button class="button">
+                    <button class="button" @click="addBlock('info')">
                         <Icon icon="material-symbols:add-rounded" />
                         Info blok toevoegen
                     </button>
                 </span>
+            </div>
+
+            <div v-for="(block, i) in flow.scheme" class="block-container">
+                <InfoBlock
+                    :options="{userA: flow.userA, userB: flow.userB}" 
+                    v-model="flow.scheme[i]"
+                    :cancel="cancelNewBlock"
+                    :success="addNewBlock"
+                    :type="flow.scheme[i].editType"
+                    v-if="block.type == 'info'"
+                />
+
+                <CommunicationBlock
+                    :options="{userA: flow.userA, userB: flow.userB}" 
+                    v-model="flow.scheme[i]"
+                    :cancel="cancelNewBlock"
+                    :success="addNewBlock"
+                    :type="flow.scheme[i].editType"
+                    v-if="block.type == 'communication'"
+                />
+                
+                <footer class="block-edit-footer" v-if="mode == 'edit' && flow.scheme[i].editType == 'view'">
+                    <button class="button ghost c-red" @click="removeBlock(flow.scheme[i])">verwijder</button>
+                    <button class="button ghost c-blue" @click="flow.scheme[i].editType = 'edit'">bewerk</button>
+                </footer>
+                
             </div>
 
             
@@ -76,7 +102,7 @@
                 :success="() => {view.c = 'view';}"
                 :type="view.c"
             /> -->
-
+<!-- 
             
             
             <CommunicationBlock
@@ -97,7 +123,7 @@
                 :cancel="() => {view.c = '';}"
                 :success="() => {view.c = 'view';}"
                 :type="view.c"
-            />
+            /> -->
         </div>
     </div>
 </template>
@@ -105,7 +131,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue"
-import { flowObject, ToggleOptions } from "../../types";
+import { flowObject, flowSchemeOption, flowSchemeCommunication, flowSchemeInfo } from "../../types";
 import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
 import InfoBlock from "../components/info-block.vue"
@@ -169,15 +195,63 @@ export default defineComponent ({
                 this.flow = flow;
             })
         },
-        add() {
-            console.log("ASDF")
+        addBlock(option: 'communication' | 'info', parentId = undefined as undefined | string) {
+            if (!this.flow) {
+                return
+            }
+
+            if (option == 'communication') {
+                this.flow.scheme.push({
+                    type: 'communication',
+                    id: new Date().getTime().toString(16),
+                    parentId: parentId,
+                    position: 'userA',
+                    content: '',
+                    editType: 'add'
+                })
+            } else if (option == 'info') {
+                this.flow.scheme.push({
+                    type: 'info',
+                    id: new Date().getTime().toString(16),
+                    parentId: parentId,
+                    position: 'userA',
+                    content: '',
+                    editType: 'add'
+                })
+            }
         },
-        addCommunicationBlock() {
-            this.editCommunicationBlock = true
+        cancelNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            if (!this.flow) {
+                return
+            }
+            
+            if (scheme.editType == 'edit') {
+                scheme.editType = 'view'
+            }
+
+            if (scheme.editType == 'add') {
+                this.flow.scheme.pop()
+            }
         },
-        cancelEdit() {
-            this.editCommunicationBlock = false
-        }
+        addNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            if (!this.flow) {
+                return
+            }
+            
+            scheme.editType = 'view'
+            this.flows.update(this.flow)
+        },
+        removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            if (!this.flow) {
+                return
+            }
+            
+            this.flow.scheme = this.flow.scheme.filter((item) => item.id != scheme.id)
+            console.log(this.flow)
+            this.flows.update(this.flow).then(d => {
+                console.log("D",d)
+            })
+        },
     }
 })
 
@@ -210,6 +284,23 @@ export default defineComponent ({
     margin-bottom: 8px;
     svg {
         transform: translate(-8px, 2px) scale(1.6);
+    }
+}
+
+.block-container {
+    &:hover {
+        .block-edit-footer {
+            opacity: 1;
+        }
+    }
+}
+
+.block-edit-footer {
+    margin: -24px auto 0;
+    opacity: 0;
+    width: 50%;
+    .button {
+        margin: 8px;
     }
 }
 

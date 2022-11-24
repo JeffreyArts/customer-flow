@@ -5,7 +5,7 @@
         <div class="info-block-add" v-if="type == 'add'">
             <header class="info-block-add-header-container">
                 <h2 class="info-block-add-header-title">Info block toevoegen</h2>
-                <span class="info-block-add-header-cancel" @click="cancel()">annuleren</span>
+                <span class="info-block-add-header-cancel" @click="cancelEdit()">annuleren</span>
             </header>
             
             <section class="info-block-add-section-container">
@@ -30,7 +30,7 @@
             </section>
             
             <footer class="info-block-add-footer-container">
-                <button class="button c-blue" @click="success()">Toevoegen</button>
+                <button class="button c-blue" @click="submitSuccess()">Toevoegen</button>
             </footer>
         </div>
         
@@ -72,7 +72,7 @@
             
             <footer class="info-block-add-footer-container">
                 <button class="button ghost small" @click="cancelEdit()">Annuleren</button>
-                <button class="button c-blue small" @click="success()">Toevoegen</button>
+                <button class="button c-blue small" @click="submitSuccess()">Toevoegen</button>
             </footer>
         </div>
         
@@ -127,15 +127,15 @@ export default defineComponent({
     methods: {
         cancelEdit() {
             this.$emit('update:modelValue', this.original)
-            // this.$emit('update:type', 'view')
+            this.$emit('update:type', 'view')
             if (this.cancel) {
-                this.cancel()
+                this.cancel(this.modelValue)
             }
         },
-        updateEdit() {
+        submitSuccess() {
             this.$emit('update:type', 'view')
             if (this.success) {
-                this.success()
+                this.success(this.modelValue)
             }
         }
     }

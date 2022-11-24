@@ -20,8 +20,23 @@ export const flowsDataStore = defineStore({
                 }).catch(reject)
             })
         },  
+        update(newFlow: flowObject):Promise<flowObject>  {
+            return new Promise((resolve, reject) => {
+                this.load(newFlow._id).then(oldFlow => {
+                    const doc = _.merge({}, oldFlow, newFlow)
+                    doc.scheme = newFlow.scheme; // Merge doesnt seem to overwrite empty array with filled array
+                    
+                    db.put(doc).then((res) => {
+                        doc._rev = res.rev
+                        resolve(_.pick(doc, ["_id", "_rev", "userA", "userB", "interaction", "description", "scheme"]) as flowObject)
+                    }).catch(reject)
+                }).catch(err => {
+                    console.error(new Error(`No flow found with id ${newFlow._id}`))
+                    reject()
+                })
+            })
+        },
         load(flowId: string):Promise<flowObject>{
-            console.log(flowId)
             return db.get(flowId)
         },
         getAll(filter?: {finished?: false}) :Promise<Array<flowObject>> {
