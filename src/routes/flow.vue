@@ -258,8 +258,22 @@ export default defineComponent ({
             if (!this.flow) {
                 return
             }
+            let parentId = false
+            this.flow.scheme = this.flow.scheme.filter((item, index) => {
+                if (item.id != scheme.id) {
+                    if (parentId) {
+                        item.parentId = parentId
+                        parentId = false
+                    }
+                    return true
+                } else {
+                    parentId = item.parentId
+                    return false
+                }
+            })
+
+            console.log(this.flow.scheme)
             
-            this.flow.scheme = this.flow.scheme.filter((item) => item.id != scheme.id)
             this.flows.update(this.flow).then(newFlow => {
                 this.flow = newFlow
             })
