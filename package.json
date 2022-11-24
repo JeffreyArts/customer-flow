@@ -15,6 +15,7 @@
     "pinia": "^2.0.25",
     "pouchdb-browser": "^7.3.0",
     "sass": "^1.56.1",
+    "visual-pattern-generator": "^1.2.4",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6"
   },

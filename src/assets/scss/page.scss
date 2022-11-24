@@ -1,0 +1,60 @@
+.container {
+    margin: auto;
+    max-width: 800px;
+    width: 100%;
+    display: flex;
+    min-height: 100vh;
+    margin-bottom: 50px;
+}
+
+.container-center {
+    width: 100%;
+    display: flex;
+    min-height:100%;
+    align-items: center;
+    justify-content: center;
+    > * {
+        max-width: 100%;
+    }
+}
+
+
+
+// PAGE
+
+.page-title {
+    font-weight: 400;
+    font-size: 32px;
+    color: #fff;
+    background-color: $accentColor;
+    border-radius: 8px;
+    display: inline-block;
+    padding: 16px 48px;
+    margin: 0;
+}
+
+.page-header {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.close-page {
+    position: absolute;
+    right: 32px;
+    top: 32px;
+    font-size: 48px;
+    transform:rotate(45deg);
+    color:$grey;
+}
+
+.page-top-right {
+    position: absolute;
+    right: 32px;
+    top: 32px;
+}
+
+.page {
+    width: 100%;
+    padding-top: 32px;
+}

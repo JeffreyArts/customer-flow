@@ -1,17 +1,19 @@
 export interface ToggleOptions {
   id: string;
   name: string;
+  selected: boolean;
   color?: string; // HEX
+  bgcolor?: string; // HEX
 }
 
 export interface flowObject {
-  _id: string; // Hex
+  _id?: string; // Hex
   _rev?: string; // Hex
-  name: string;
   userA: string;
   userB: string;
   interaction: string;
-  scheme: [flowScheme];
+  description?: string;
+  scheme: [flowScheme?];
 }
 
 export interface flowScheme {

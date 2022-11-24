@@ -1,9 +1,12 @@
 <template>
     <aside class="side-menu-left"> 
-        <router-link to="/test" class="flow-item">
-            <i class="flow-item-icon"></i>
+        <router-link :to="`/flow/${flow._id}`" class="flow-item" v-for="flow in flowArray" :key="flow._id">
+            <i class="flow-item-icon">
+                <generated-image :seed="`${flow.userA[0]}${flow.interaction[0]}${flow.userB[0]}`"></generated-image>
+            </i>
+            
             <span class="flow-item-text">
-                Klant belt Zomers
+                {{flow.userA}} {{flow.interaction}} {{flow.userB}}
             </span>
         </router-link>
         <router-link to="/new-flow" class="flow-item">
@@ -17,39 +20,42 @@
 
 
 <script lang="ts">
+import { flowObject } from "../../types";
+import Flows from "../stores/flows";
 import { defineComponent } from "vue"
 import { Icon } from '@iconify/vue';
+import GeneratedImage  from '../components/generated-image.vue';
 import {useRoute} from "vue-router"
 
 export default defineComponent({
-    // type inference enabled
-    name: "site-bg",
+    name: "side-menu-left",
     data: () => {
         return {
-            offset: 50,
-            screenWidth:  0,
-            screenHeight:  0
+            flowArray: [] as Array<flowObject>
         }
     },
-    components: {
-        Icon
-    },
-    computed: {
+    components: {Icon, GeneratedImage},
+    
+    setup() {
+        const flows = Flows()
+        return {
+            flows,
+        }
     },
     mounted() {
-        //
-        window.addEventListener("resize",this.updateScreenSizes)
-        window.dispatchEvent(new Event("resize"))
+        this.flows.getAll().then((flows) => {
+            for (let i = 0; i < flows.length; i++) {
+                this.flowArray.push(flows[i])
+            }
+            
+            console.log(this.flowArray)
+        })
     },
     unmounted() {
-        //
-        window.removeEventListener("resize",this.updateScreenSizes)
+        
     },
     methods: {
-        updateScreenSizes() {
-            this.screenWidth = window.innerWidth
-            this.screenHeight = window.innerHeight
-        }
+        
     }
 })
 </script>
@@ -59,8 +65,8 @@ export default defineComponent({
 
 .side-menu-left {
     position: absolute;
-    left: 30px;
-    top: 30px;
+    left: 32px;
+    top: 32px;
 }
 
 .flow-item {
@@ -87,6 +93,7 @@ export default defineComponent({
         
         &.flow-item-icon {
             background-color: $accentColor;
+            position: relative;
         }
         
         &:hover {

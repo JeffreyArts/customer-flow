@@ -3,7 +3,7 @@
         <router-link to="/" class="close-page">
             <Icon icon="line-md:plus"/>
         </router-link>
-        <div>
+        <div class="container-center-container">
             <header class="page-header">
                 <h1 class="page-title">Nieuwe flow toevoegen</h1>
             </header>
@@ -13,9 +13,18 @@
 
                 <form action="" @submit="addNewFlow">
                     <div class="new-flow-form">
-                        <input v-model="userA" type="text" class="input large" placeholder="Gebruiker A">
-                        <input v-model="interaction" type="text" class="input large" placeholder="belt">
-                        <input v-model="userB" type="text" class="input large" placeholder="Gebruiker B">
+                        <div class="new-flow-form-column">
+                            <input v-model="userA.value" type="text" class="input large" placeholder="Gebruiker A">
+                            <span class="new-flow-form-error" v-if="userA.error">{{userA.error}}</span>
+                        </div>
+                        <div class="new-flow-form-column">
+                            <input v-model="interaction.value" type="text" class="input large" placeholder="belt">
+                            <span class="new-flow-form-error" v-if="interaction.error">{{interaction.error}}</span>
+                        </div>
+                        <div class="new-flow-form-column">
+                            <input v-model="userB.value" type="text" class="input large" placeholder="Gebruiker B">
+                            <span class="new-flow-form-error" v-if="userB.error">{{userB.error}}</span>
+                        </div>
                     </div>
                     <button type="submit" class="c-blue large">Voeg toe</button>
                 </form>
@@ -30,6 +39,7 @@
 <script lang="ts">
 import {defineComponent} from "vue"
 import Toggle from "../components/toggle.vue"
+import Flows from "../stores/flows";
 import { Icon } from '@iconify/vue';
 
 export default defineComponent ({ 
@@ -37,13 +47,25 @@ export default defineComponent ({
     components: {Toggle, Icon},
     props: [],
     setup() {
-    
+        const flows = Flows()
+        return {
+            flows,
+        }
     },
     data() {
         return {
-            userA: "",
-            userB: "",
-            interaction: "",
+            userA: {
+                value: "Klant",
+                error: ""
+            },
+            userB: {
+                value: "Zomers",
+                error: ""
+            },
+            interaction: {
+                value: "mailt",
+                error: ""
+            },
         }
     },
     watch: {
@@ -53,8 +75,33 @@ export default defineComponent ({
     methods: {
         addNewFlow(event: Event) {
             event.preventDefault();
+            this.userA.error = "";
+            this.userB.error = "";
+            this.interaction.error = "";
 
-            console.log(this.userA, this.interaction, this.userB);
+            if (!this.userA.value) {
+                this.userA.error = "Vul hier een naam/doelgroep in van de klant";
+            }
+            if (!this.userB.value) {
+                this.userB.error = "Vul hier de naam van de organisatie of medewerker in";
+            }
+            if (!this.interaction.value) {
+                this.interaction.error = "Vul hier de interactie in (belt, mailt, etc.)";
+            }
+
+            if (this.userA.error || this.userB.error || this.interaction.error) {
+                return
+            }
+
+            this.flows.add({
+                _id: new Date().getTime().toString(16),
+                userA: this.userA.value,
+                userB: this.userB.value,
+                interaction: this.interaction.value,
+                scheme: []
+            }).then(() => {                
+                this.$router.push({path: "/"});
+            })
         }
     }
 })
@@ -63,53 +110,30 @@ export default defineComponent ({
 
 <style lang="scss">
 @import "./../assets/scss/variables.scss";
-.page-title {
-    font-weight: 400;
-    font-size: 32px;
-    color: #fff;
-    background-color: $accentColor;
-    border-radius: 8px;
-    display: inline-block;
-    padding: 16px 48px;
-    margin: 0;
-}
-.container-center {
-    width: 100%;
-    display: flex;
-    min-height:100%;
-    align-items: center;
-    justify-content: center;
-}
 
-.page-header {
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-.close-page {
-    position: absolute;
-    right: 30px;
-    top: 30px;
-    font-size: 48px;
-    transform:rotate(45deg);
-    color:$grey;
-}
 .new-flow-form {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     margin-bottom: 32px;
-    input {
-        width: calc(100% / 3 - 16px);
-    }
     + button {
         float: right;
     }
+}
+
+.new-flow-form-column {
+    max-width: calc(100% / 3 - 16px);
 }
 
 .new-flow-description {
     text-align: center;
     width: 80%;
     margin: 48px auto;
+}
+.new-flow-form-error {
+    font-size: 12px;
+    padding: 16px 32px;
+    color: $red;
+    display: block;
 }
 </style>

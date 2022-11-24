@@ -73,6 +73,7 @@ button,
     &.ghost {
         border: 1px solid currentColor;
         background-color: transparent;
+        color: $grey;
     }
     
     &:hover {

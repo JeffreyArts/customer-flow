@@ -1,49 +1,53 @@
 <template>
     <div class="" >
         <br/><br/>
-        <button class="large ghost ">{{test.name}}</button> &nbsp; <button class="large ">{{test.name}}</button> &nbsp; <br/><br/>
-        <button class="ghost ">{{test.name}}</button> &nbsp; <button class="">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="small ghost ">{{test.name}}</button> &nbsp; <button class="small ">{{test.name}}</button>
+        <button class="large ghost ">{{buttonText}}</button> &nbsp; <button class="large ">{{buttonText}}</button> &nbsp; <br/><br/>
+        <button class="ghost ">{{buttonText}}</button> &nbsp; <button class="">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="small ghost ">{{buttonText}}</button> &nbsp; <button class="small ">{{buttonText}}</button>
         <br/><br/><br/><br/>
         
-        <button class="large ghost c-blue">{{test.name}}</button> &nbsp; <button class="large c-blue">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="ghost c-blue">{{test.name}}</button> &nbsp; <button class="c-blue">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="small ghost c-blue">{{test.name}}</button> &nbsp; <button class="small c-blue">{{test.name}}</button><br/><br/>
+        <button class="large ghost c-blue">{{buttonText}}</button> &nbsp; <button class="large c-blue">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="ghost c-blue">{{buttonText}}</button> &nbsp; <button class="c-blue">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="small ghost c-blue">{{buttonText}}</button> &nbsp; <button class="small c-blue">{{buttonText}}</button><br/><br/>
         <br/><br/>
-        <button class="large ghost c-accent">{{test.name}}</button> &nbsp; <button class="large c-accent">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="ghost c-accent">{{test.name}}</button> &nbsp; <button class="c-accent">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="small ghost c-accent">{{test.name}}</button> &nbsp; <button class="small c-accent">{{test.name}}</button><br/><br/>
+        <button class="large ghost c-accent">{{buttonText}}</button> &nbsp; <button class="large c-accent">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="ghost c-accent">{{buttonText}}</button> &nbsp; <button class="c-accent">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="small ghost c-accent">{{buttonText}}</button> &nbsp; <button class="small c-accent">{{buttonText}}</button><br/><br/>
         <br/><br/><br/><br/>
-        <button class="large ghost c-red">{{test.name}}</button> &nbsp; <button class="large c-red">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="ghost c-red">{{test.name}}</button> &nbsp; <button class="c-red">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="small ghost c-red">{{test.name}}</button> &nbsp; <button class="small c-red">{{test.name}}</button> &nbsp;<br/><br/>
+        <button class="large ghost c-red">{{buttonText}}</button> &nbsp; <button class="large c-red">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="ghost c-red">{{buttonText}}</button> &nbsp; <button class="c-red">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="small ghost c-red">{{buttonText}}</button> &nbsp; <button class="small c-red">{{buttonText}}</button> &nbsp;<br/><br/>
         <br/><br/><br/><br/>
-        <button class="large ghost c-green">{{test.name}}</button> &nbsp; <button class="large c-green">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="ghost c-green">{{test.name}}</button> &nbsp; <button class="c-green">{{test.name}}</button> &nbsp;<br/><br/>
-        <button class="small ghost c-green">{{test.name}}</button> &nbsp; <button class="small c-green">{{test.name}}</button> &nbsp;<br/><br/>
+        <button class="large ghost c-green">{{buttonText}}</button> &nbsp; <button class="large c-green">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="ghost c-green">{{buttonText}}</button> &nbsp; <button class="c-green">{{buttonText}}</button> &nbsp;<br/><br/>
+        <button class="small ghost c-green">{{buttonText}}</button> &nbsp; <button class="small c-green">{{buttonText}}</button> &nbsp;<br/><br/>
         <br/><br/>
         
         <toggle :options="[{
-            id:'test',
+            id:'userA',
             name: 'Klant',
+            selected: false,
             bgcolor: '#09f',
             color: '#fff',
         }, {
-            id:'test2',
+            id:'userB',
             name: 'Zomers',
+            selected: true,
             color: '#fff',
             bgcolor: '#f09',
-        }]" :value="test" />
+        }]" v-model="buttonText" />
         
         <toggle :options="[{
             id:'123',
             name: '👁️',
+            selected: false,
             bgcolor: '#fff',
         }, {
             id:'asdf',
             name: '🖊️',
+            selected: true,
             bgcolor: '#fff',
-        }]" :value="test2" />
+        }]" v-model="buttonText" />
 
         <br/><br/>
 
@@ -94,7 +98,8 @@ export default defineComponent ({
                 id:'aan',
                 name: 'Aan',
                 bgcolor: '#fff',
-            }
+            },
+            buttonText: "undefined"
         }
     },
     watch: {

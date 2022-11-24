@@ -1,9 +1,10 @@
 <template>
     <span class="toggle"> 
-        <label class="toggle-option" :class="value.id == option.id ? '__isActive' : ''" v-for="option in options" :key="option.id" :ref="option.name">
+        <label class="toggle-option" :class="modelValue == option.id ? '__isActive' : ''" v-for="option in options" :key="option.id" :ref="option.name">
             <input type="text" :value="option" @focus="changeValue(option)"/>
             {{option.name}}
         </label>
+        <!-- <input :value="modelValue" @input="changeValue"/> -->
         <div class="toggle-button" :style="`width: ${buttonWidth}px; left: ${buttonOffsetLeft}px; background-color: ${buttonBgColor};`"></div>
     </span>
 </template>
@@ -15,7 +16,17 @@ import { ToggleOptions } from "./../../types"
 
 export default defineComponent({
     // type inference enabled
-    props: ['options', 'value'],
+    props: {
+        options: {
+            type: Array as () => ToggleOptions[],
+            required: true
+        },
+        modelValue: {
+            type: String,
+            required: true
+        }
+    },
+    emits: ['update:modelValue'],
     data() {
         return {
             id: "",
@@ -27,23 +38,46 @@ export default defineComponent({
         }
     },
     mounted() {
-        this.changeValue(this.value)
+        let data = null as null | ToggleOptions
+
+        if (!this.options) {
+            console.error("Missing required parameter: options")
+        }
+
+        this.options.forEach((option: ToggleOptions) => {
+            if (option.selected) {
+                data = option
+                this.$emit('update:modelValue', option.id)
+            }
+        })
+
+        if (!data) {
+            data = this.options[0]
+        }
+
+        setTimeout(() => {
+            this.changeValue(data)
+        })
     },
     unmounted() {
     },
     methods: {
         changeValue(data: ToggleOptions) {
-            this.value.id = data.id
-            this.value.name = data.name
-            this.value.color = data.color
+            // let data = null
+            // set alhpha from this.options where modelValue == id
 
-            if (this.$refs[data.name]) {
+
+            if (data && this.$refs[data.name]) {
                 let domElement = this.$refs[data.name][0]
-                this.buttonOffsetLeft = domElement.offsetLeft - 7;
-                this.buttonWidth = domElement.offsetWidth + 14
-                this.buttonBgColor = data.bgcolor
+                this.buttonOffsetLeft = domElement.offsetLeft - 12;
+                this.buttonWidth = domElement.offsetWidth + 12*2
+                
+                if (data.bgcolor) {
+                    this.buttonBgColor = data.bgcolor
+                }
             }
-            console.log(this.buttonWidth)
+            // this.modelValue.set(data.id) 
+            this.$emit('update:modelValue', data.id)
             
         }
     }
@@ -55,7 +89,7 @@ export default defineComponent({
  
 .toggle {
     background-color: transparent;
-    border: 0 none transparent;
+    border: 1px solid $grey;
     border-radius: 32px;
     background-color: $light-grey;
     height: 36px;
@@ -66,11 +100,11 @@ export default defineComponent({
 }
 
 .toggle-button {
-    height: calc(100% - 2px);
+    height: calc(100%);
     border-radius: 34px;
     background-color: #fff;
     position: absolute;
-    top: 1px;
+    top: 0;
     right: 1px;
     transition: $transitionDefault;
 }
@@ -81,8 +115,8 @@ export default defineComponent({
     top: 50%;
     transform: translateY(-50%);
     display: inline-block;
-    margin-right: 8px;
-    margin-left: 8px;
+    margin-right: 12px;
+    margin-left: 12px;
     transition: $transitionDefault;
     opacity: 0.2;
 
@@ -91,6 +125,7 @@ export default defineComponent({
         padding: 0;
         border:0 none transparent;
         height: 0;
+        position: absolute;
         outline: 0 none transparent;
     }
     &.__isActive {
