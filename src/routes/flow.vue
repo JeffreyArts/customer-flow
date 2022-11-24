@@ -32,7 +32,6 @@
                 <div class="flow-column-content"></div>
             </div>
 
-
             <div class="flow-modify-buttons" v-if="mode == 'edit' && flow.scheme.length == 0">
                 <span class="flow-modify-button">
                     <button class="button">
@@ -54,29 +53,52 @@
                 </span>
             </div>
 
-            <div v-for="(block, i) in flow.scheme" class="block-container">
+            
+            <div v-for="(block, i) in scheme" class="block-container">
                 <InfoBlock
                     :options="{userA: flow.userA, userB: flow.userB}" 
-                    v-model="flow.scheme[i]"
-                    :cancel="cancelNewBlock"
+                    v-model="scheme[i]"
+                    :cancel="scheme[i].cancel"
                     :success="addNewBlock"
-                    :type="flow.scheme[i].editType"
+                    :type="scheme[i].editType"
                     v-if="block.type == 'info'"
                 />
 
                 <CommunicationBlock
                     :options="{userA: flow.userA, userB: flow.userB}" 
-                    v-model="flow.scheme[i]"
-                    :cancel="cancelNewBlock"
+                    v-model="scheme[i]"
+                    :cancel="scheme[i].cancel"
                     :success="addNewBlock"
-                    :type="flow.scheme[i].editType"
+                    :type="scheme[i].editType"
                     v-if="block.type == 'communication'"
                 />
                 
-                <footer class="block-edit-footer" v-if="mode == 'edit' && flow.scheme[i].editType == 'view'">
-                    <button class="button ghost c-red" @click="removeBlock(flow.scheme[i])">verwijder</button>
-                    <button class="button ghost c-blue" @click="flow.scheme[i].editType = 'edit'">bewerk</button>
+                <footer class="block-edit-footer" v-if="mode == 'edit' && scheme[i].editType == 'view'">
+                    <button class="button ghost c-red" @click="removeBlock(scheme[i])">verwijder</button>
+                    <button class="button ghost" @click="addBlocks = i"> <Icon icon="material-symbols:add-rounded" /></button>
+                    <button class="button ghost c-blue" @click="scheme[i].editType = 'edit'">bewerk</button>
                 </footer>
+
+                <div class="flow-modify-buttons" v-if="mode == 'edit' && addBlocks == i">
+                    <span class="flow-modify-button">
+                        <button class="button">
+                            <Icon icon="material-symbols:add-rounded" />
+                            Keuze toevoegen
+                        </button>
+                    </span>
+                    <span class="flow-modify-button">
+                        <button class="button" @click="addBlock('communication', scheme[i].id)">
+                            <Icon icon="material-symbols:add-rounded" />
+                            Communicatie blok toevoegen
+                        </button>
+                    </span>
+                    <span class="flow-modify-button">
+                        <button class="button" @click="addBlock('info', scheme[i].id)">
+                            <Icon icon="material-symbols:add-rounded" />
+                            Info blok toevoegen
+                        </button>
+                    </span>
+                </div>
                 
             </div>
 
@@ -136,6 +158,7 @@ import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
 import InfoBlock from "../components/info-block.vue"
 import Flows from "../stores/flows";
+import _ from "lodash";
 import { Icon } from '@iconify/vue';
 
 export default defineComponent ({ 
@@ -152,31 +175,27 @@ export default defineComponent ({
         return {
             mode: "edit",
             flow: null as null | flowObject,
-            editCommunicationBlock: false,
-            a: {
-                id: 'string',
-                parentId: '',
-                position: 'userB',
-                content: 'lorem ipsum',
-            },
-            b: {
-                id: 'string',
-                parentId: '',
-                position: 'userB',
-                content: 'lorem ipsum',
-            },
-            c: {
-                id: 'string',
-                parentId: '',
-                position: 'userB',
-                content: 'lorem ipsum',
-            },
-            viewA: "edit",
-            view: {
-                a: 'view',
-                b: 'edit',
-                c: 'add',
+            addBlocks: 1024
+        }
+    },
+    computed: {
+        scheme() {
+            if (!this.flow) {
+                return []
             }
+
+            var res = _.map(this.flow.scheme, (scheme, index) => {
+                if (!scheme.editType) {
+                    scheme.cancel = this.cancelNewBlock
+                    if (this.scheme && this.scheme[index]) {
+                        scheme.editType = this.scheme[index].editType
+                    } else {
+                        scheme.editType = "view"
+                    }
+                }
+                return scheme 
+            })
+            return res
         }
     },
     watch: {
@@ -196,8 +215,15 @@ export default defineComponent ({
             })
         },
         addBlock(option: 'communication' | 'info', parentId = undefined as undefined | string) {
+            this.addBlocks = 1024
             if (!this.flow) {
                 return
+            }
+            let parent = null as null | flowSchemeOption;
+            if (parentId) {
+                parent = _.find(this.scheme, (scheme:flowSchemeOption) => {
+                    return scheme.id == parentId
+                })
             }
 
             if (option == 'communication') {
@@ -205,8 +231,9 @@ export default defineComponent ({
                     type: 'communication',
                     id: new Date().getTime().toString(16),
                     parentId: parentId,
-                    position: 'userA',
+                    position: parent?.position == 'userA' ? 'userB' : 'userA',
                     content: '',
+                    cancel: this.cancelNewBlock,
                     editType: 'add'
                 })
             } else if (option == 'info') {
@@ -214,13 +241,31 @@ export default defineComponent ({
                     type: 'info',
                     id: new Date().getTime().toString(16),
                     parentId: parentId,
-                    position: 'userA',
+                    position: parent?.position == 'userA' ? 'userB' : 'userA',
                     content: '',
+                    cancel: this.cancelNewBlock,
                     editType: 'add'
                 })
             }
+            
+            
+            this.flows.update(this.flow).then(newFlow => {
+                this.flow = newFlow
+            })
+        },
+        removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            this.addBlocks = 1024
+            if (!this.flow) {
+                return
+            }
+            
+            this.flow.scheme = this.flow.scheme.filter((item) => item.id != scheme.id)
+            this.flows.update(this.flow).then(newFlow => {
+                this.flow = newFlow
+            })
         },
         cancelNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            this.addBlocks = 1024
             if (!this.flow) {
                 return
             }
@@ -228,28 +273,24 @@ export default defineComponent ({
             if (scheme.editType == 'edit') {
                 scheme.editType = 'view'
             }
-
+            
             if (scheme.editType == 'add') {
                 this.flow.scheme.pop()
             }
+            
+            this.flows.update(this.flow).then(newFlow => {
+                this.flow = newFlow
+            })
         },
         addNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            this.addBlocks = 1024
             if (!this.flow) {
                 return
             }
             
             scheme.editType = 'view'
-            this.flows.update(this.flow)
-        },
-        removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
-            if (!this.flow) {
-                return
-            }
-            
-            this.flow.scheme = this.flow.scheme.filter((item) => item.id != scheme.id)
-            console.log(this.flow)
-            this.flows.update(this.flow).then(d => {
-                console.log("D",d)
+            this.flows.update(this.flow).then(newFlow => {
+                this.flow = newFlow
             })
         },
     }
@@ -296,11 +337,18 @@ export default defineComponent ({
 }
 
 .block-edit-footer {
-    margin: -24px auto 0;
+    margin: -24px auto 8px;
     opacity: 0;
     width: 50%;
+    display: flex;
+    justify-content: space-between;
+    transition: $transitionFast;
     .button {
         margin: 8px;
+        svg {
+            scale: 1.6;
+            translate: 0 2px;
+        }
     }
 }
 

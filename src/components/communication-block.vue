@@ -5,7 +5,7 @@
         <div class="communication-block-add" v-if="type == 'add'">
             <header class="communication-block-add-header-container">
                 <h2 class="communication-block-add-header-title">Communicatie block toevoegen</h2>
-                <span class="communication-block-add-header-cancel" @click="cancelEdit()">annuleren</span>
+                <span class="communication-block-add-header-cancel" @click="cancelEdit">annuleren</span>
             </header>
             
             <section class="communication-block-add-section-container">
@@ -61,7 +61,7 @@
             </section>
             
             <footer class="communication-block-add-footer-container">
-                <button class="button ghost small" @click="cancelEdit()">Annuleren</button>
+                <button class="button ghost small" @click="cancelEdit">Annuleren</button>
                 <button class="button c-blue small" @click="submitSuccess(modelValue)">Wijziging opslaan</button>
             </footer>
         </div>
@@ -116,17 +116,17 @@ export default defineComponent({
     },
     methods: {
         cancelEdit() {
+            this.modelValue.content = this.original.content
             this.$emit('update:modelValue', this.original)
-            // if (this.type == 'add') {
-            // }
-            // this.$emit('update:type', 'view')
-            
+
             if (this.cancel) {
                 this.cancel(this.modelValue)
             }
         },
         submitSuccess() {
             this.$emit('update:type', 'view')
+            this.original = _.cloneDeep(this.modelValue)
+            console.log(this.original.content)
             if (this.success) {
                 this.success(this.modelValue)
             }

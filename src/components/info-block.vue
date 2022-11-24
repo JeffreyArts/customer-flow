@@ -5,7 +5,7 @@
         <div class="info-block-add" v-if="type == 'add'">
             <header class="info-block-add-header-container">
                 <h2 class="info-block-add-header-title">Info block toevoegen</h2>
-                <span class="info-block-add-header-cancel" @click="cancelEdit()">annuleren</span>
+                <span class="info-block-add-header-cancel" @click="cancelEdit">annuleren</span>
             </header>
             
             <section class="info-block-add-section-container">
@@ -35,8 +35,8 @@
         </div>
         
         <!-- View info block -->
-        <div class="info-block-view" v-if="type == 'view'" :class="{ '__isRight': modelValue.position == 'userB' }">
-            <section class="info-box" :class="{ '__isRight': modelValue.position == 'userB' }">
+        <div class="info-block-view" v-if="type == 'view'" :class="{ '__isRight': modelValue.position == 'userB', '__isLeft': modelValue.position == 'userA' }">
+            <section class="info-box">
                 {{modelValue.content}}
             </section>
         </div>
@@ -71,8 +71,8 @@
             </section>
             
             <footer class="info-block-add-footer-container">
-                <button class="button ghost small" @click="cancelEdit()">Annuleren</button>
-                <button class="button c-blue small" @click="submitSuccess()">Toevoegen</button>
+                <button class="button ghost small" @click="cancelEdit">Annuleren</button>
+                <button class="button c-blue small" @click="submitSuccess()">Update</button>
             </footer>
         </div>
         
@@ -126,8 +126,9 @@ export default defineComponent({
     },
     methods: {
         cancelEdit() {
+            this.modelValue.content = this.original.content
             this.$emit('update:modelValue', this.original)
-            this.$emit('update:type', 'view')
+
             if (this.cancel) {
                 this.cancel(this.modelValue)
             }

@@ -19,6 +19,7 @@ export interface flowObject {
 
 export interface flowSchemeOption {
   parentId: string | undefined;
+  cancel?: object;
   type: 'option';
   options: [
     {
@@ -31,6 +32,7 @@ export interface flowSchemeOption {
 
 export interface flowSchemeCommunication {
   id: string;
+  cancel?: object;
   type: 'communication';
   parentId: string | undefined;
   position: "userA" | "userB";
@@ -40,6 +42,7 @@ export interface flowSchemeCommunication {
 
 export interface flowSchemeInfo {
   id: string;
+  cancel?: object;
   type: 'info';
   parentId: string | undefined;
   content: string;

@@ -10,7 +10,7 @@ button,
     display: inline-block;
     align-items: center;
     padding: 0 32px;
-    transition: .12s all linear;
+    transition: $transitionFast;
     cursor: pointer;
     
     &.small {
