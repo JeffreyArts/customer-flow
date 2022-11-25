@@ -25,7 +25,7 @@ export const flowsDataStore = defineStore({
                 this.load(newFlow._id).then(oldFlow => {
                     const doc = _.merge({}, oldFlow,_.pick( newFlow, ["_id", "_rev", "userA", "userB", "interaction", "description", "scheme"]))
                     doc.scheme = _.map(newFlow.scheme, scheme => { return _.pick(scheme, ["id", "type", "parentId", "content", "position","options"])});
-                    console.log(doc)
+
                     db.put(doc).then((res) => {
                         doc._rev = res.rev
                         resolve(_.pick(doc, ["_id", "_rev", "userA", "userB", "interaction", "description", "scheme"]) as flowObject)

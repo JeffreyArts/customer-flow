@@ -44,9 +44,6 @@ export default defineComponent({
     },
     created() {
         
-        // this.$on('update:flows', ()=> {
-        //     console.log("Update flows")
-        // })
     },
     mounted() {
         this.flows.getAll().then((flows) => {

@@ -161,6 +161,40 @@ import Flows from "../stores/flows";
 import _ from "lodash";
 import { Icon } from '@iconify/vue';
 
+const findChildObject = (id: string | undefined, scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>) => {
+    let found = false;
+    let foundObject = null;
+    for (let i = 0; i < scheme.length; i++) {
+        if (scheme[i].parentId == id) {
+            return scheme[i];
+            break;
+        }
+    }
+    return foundObject;
+}
+
+const orderScheme = (
+        array: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>, 
+        scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>
+    ) => {
+    let lastArrayItem = array[array.length - 1];
+    let prevArrayItem = array[array.length - 2];
+    if (!lastArrayItem) {
+        return array;
+    }
+
+    let child = findChildObject(lastArrayItem.id, scheme)
+    if (!child) {
+        return array;
+    }
+
+    array.push(child);
+    if (array.length < scheme.length) {
+        orderScheme(array, scheme);
+    }
+    return array
+}
+
 export default defineComponent ({ 
     name: "homePage",
     components: {Toggle, Icon, CommunicationBlock, InfoBlock},
@@ -183,8 +217,18 @@ export default defineComponent ({
             if (!this.flow) {
                 return []
             }
+            var test = _.shuffle(this.flow.scheme) as Array<flowSchemeOption>
+            var array = []
+            var firstBlock = findChildObject(undefined, test);
 
-            var res = _.map(this.flow.scheme, (scheme, index) => {
+            if (!firstBlock) {
+                return []
+            }
+
+            array.push(firstBlock)
+            orderScheme(array, test)
+            
+            var res = _.map(array, (scheme, index) => {
                 if (!scheme.editType) {
                     scheme.cancel = this.cancelNewBlock
                     if (this.scheme && this.scheme[index]) {
@@ -210,16 +254,27 @@ export default defineComponent ({
     },
     methods: {
         loadFlow() {
-            this.flows.load(this.$route.params.flowId).then((flow) => {
+            this.flows.load(this.$route.params.flowId.toString()).then((flow) => {
                 this.flow = flow;
             })
         },
         addBlock(option: 'communication' | 'info', parentId = undefined as undefined | string) {
             this.addBlocks = 1024
+            let parent = undefined as undefined | flowSchemeOption;
+            const id = new Date().getTime().toString(16);
+
             if (!this.flow) {
                 return
             }
-            let parent = null as null | flowSchemeOption;
+
+            let sibling = _.find(this.scheme, (scheme:flowSchemeOption) => {
+                return scheme.parentId == parentId
+            })
+
+            if (sibling) {
+                sibling.parentId = id
+            }
+
             if (parentId) {
                 parent = _.find(this.scheme, (scheme:flowSchemeOption) => {
                     return scheme.id == parentId
@@ -229,7 +284,7 @@ export default defineComponent ({
             if (option == 'communication') {
                 this.flow.scheme.push({
                     type: 'communication',
-                    id: new Date().getTime().toString(16),
+                    id: id,
                     parentId: parentId,
                     position: parent?.position == 'userA' ? 'userB' : 'userA',
                     content: '',
@@ -239,7 +294,7 @@ export default defineComponent ({
             } else if (option == 'info') {
                 this.flow.scheme.push({
                     type: 'info',
-                    id: new Date().getTime().toString(16),
+                    id: id,
                     parentId: parentId,
                     position: parent?.position == 'userA' ? 'userB' : 'userA',
                     content: '',
@@ -253,26 +308,34 @@ export default defineComponent ({
                 this.flow = newFlow
             })
         },
+        updateParentId(item: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            if (!this.flow) {
+                return
+            }
+
+            let parentItem = _.find(this.flow.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+                return scheme.id == item.parentId
+            })
+            
+            let childItem = _.find(this.flow.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+                return scheme.parentId == item.id
+            })
+        
+            if (!childItem) {
+                return
+            }
+
+            childItem.parentId = parentItem?.id
+        },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
             if (!this.flow) {
                 return
             }
-            let parentId = false
-            this.flow.scheme = this.flow.scheme.filter((item, index) => {
-                if (item.id != scheme.id) {
-                    if (parentId) {
-                        item.parentId = parentId
-                        parentId = false
-                    }
-                    return true
-                } else {
-                    parentId = item.parentId
-                    return false
-                }
-            })
+            let parent = scheme
+            this.updateParentId(parent)
 
-            console.log(this.flow.scheme)
+            this.flow.scheme = _.omitBy(this.flow.scheme.filter((item) => { return item.id != scheme.id}), _.isEmpty)
             
             this.flows.update(this.flow).then(newFlow => {
                 this.flow = newFlow

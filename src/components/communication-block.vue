@@ -126,7 +126,7 @@ export default defineComponent({
         submitSuccess() {
             this.$emit('update:type', 'view')
             this.original = _.cloneDeep(this.modelValue)
-            console.log(this.original.content)
+
             if (this.success) {
                 this.success(this.modelValue)
             }
@@ -203,8 +203,10 @@ export default defineComponent({
 .communication-block-view {
     display: flex;
     transition: $transitionDefault;
+    animation: slideInLeft .24s ease-in-out;
     
     &.__isRight {
+        animation: slideInRight .24s ease-in-out;
         > .speech-bubble {
             transform: translateX(calc(100% + 64px));
         }
@@ -229,4 +231,6 @@ export default defineComponent({
         margin-top: 16px;
     }
 }
+
+
 </style>
