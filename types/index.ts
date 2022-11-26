@@ -19,34 +19,33 @@ export interface flowObject {
 
 export interface flowSchemeOption {
   id: string;
-  parentId: string | undefined;
-  type: 'option';
+  parentId: string;
+  type: 'options';
+  position: "userA" | "userB";
   editType?: "add" | "edit" | "view";
   cancel?: object;
-  options: [
-    {
-      id: string;
-      name: string;
-    }
-  ]
+  options: [{
+    name: string;
+    schemeId: string | undefined;
+  }]; // Array of flowScheme id's
 }
 
 export interface flowSchemeCommunication {
   id: string;
-  parentId: string | undefined;
+  parentId: string ;
   type: 'communication';
+  position: "userA" | "userB";
   editType?: "add" | "edit" | "view";
   cancel?: object;
-  position: "userA" | "userB";
   content: string;
 }
 
 export interface flowSchemeInfo {
   id: string;
-  parentId: string | undefined;
+  parentId: string;
   type: 'info';
   editType?: "add" | "edit" | "view";
+  position: "userA" | "userB" | "both";
   cancel?: object;
   content: string;
-  position: "userA" | "userB" | "both";
 }

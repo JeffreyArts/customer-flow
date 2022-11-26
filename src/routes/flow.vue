@@ -1,5 +1,5 @@
 <template>
-    <div class="page" v-if="flow">
+    <div class="page" v-if="flow && flow.model">
 
         <div to="/" class="page-top-right">
                 
@@ -17,24 +17,21 @@
         </div>
 
         <header class="page-header">
-            <h1 class="page-title">{{flow.userA}} {{flow.interaction}} {{flow.userB}}</h1>
+            <h1 class="page-title">{{flow.model.userA}} {{flow.model.interaction}} {{flow.model.userB}}</h1>
         </header>
         <div class="flow-container" >
             <header class="flow-header">
                 <div class="flow-header-left">
-                    {{flow.userA}}
+                    {{flow.model.userA}}
                 </div>
                 <div class="flow-header-right">
-                    {{flow.userB}}
+                    {{flow.model.userB}}
                 </div>
             </header>
-            <div class="flow-content">
-                <div class="flow-column-content"></div>
-            </div>
 
-            <div class="flow-modify-buttons" v-if="mode == 'edit' && flow.scheme.length == 0">
+            <div class="flow-modify-buttons" v-if="mode == 'edit' && flow.model.scheme.length == 0">
                 <span class="flow-modify-button">
-                    <button class="button">
+                    <button class="button" @click="addBlock('options')">
                         <Icon icon="material-symbols:add-rounded" />
                         Keuze toevoegen
                     </button>
@@ -54,9 +51,9 @@
             </div>
 
             
-            <div v-for="(block, i) in scheme" class="block-container">
+            <div v-for="(block, i) in scheme" class="block-container" :ref="block.id" :key="i">
                 <InfoBlock
-                    :options="{userA: flow.userA, userB: flow.userB}" 
+                    :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                     v-model="scheme[i]"
                     :cancel="scheme[i].cancel"
                     :success="addNewBlock"
@@ -65,12 +62,23 @@
                 />
 
                 <CommunicationBlock
-                    :options="{userA: flow.userA, userB: flow.userB}" 
+                    :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                     v-model="scheme[i]"
                     :cancel="scheme[i].cancel"
                     :success="addNewBlock"
                     :type="scheme[i].editType"
                     v-if="block.type == 'communication'"
+                    />
+                    
+                    <!-- :options="{userA: flow.model.userA, userB: flow.model.userB}"  -->
+                    <OptionsBlock
+                    :options="{userA: flow.model.userA, userB: flow.model.userB}" 
+                    v-model="scheme[i]"
+                    :scheme="flow.model.scheme"
+                    :cancel="scheme[i].cancel"
+                    :success="addNewBlock"
+                    :type="scheme[i].editType"
+                    v-if="block.type == 'options'"
                 />
                 
                 <footer class="block-edit-footer" v-if="mode == 'edit' && scheme[i].editType == 'view'">
@@ -81,7 +89,7 @@
 
                 <div class="flow-modify-buttons" v-if="mode == 'edit' && addBlocks == i">
                     <span class="flow-modify-button">
-                        <button class="button">
+                        <button class="button" @click="addBlock('options', scheme[i].id)">
                             <Icon icon="material-symbols:add-rounded" />
                             Keuze toevoegen
                         </button>
@@ -106,19 +114,19 @@
 <!-- 
 
             <InfoBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="a"
                 :type="view.a"
             />
             <InfoBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="b"
                 :cancel="() => {view.b = 'view';}"
                 :success="() => {view.b = 'view';}"
                 :type="view.b"
                 />
             <InfoBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="c"
                 :cancel="() => {view.c = '';}"
                 :success="() => {view.c = 'view';}"
@@ -128,19 +136,19 @@
             
             
             <CommunicationBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="a"
                 :type="view.a"
             />
             <CommunicationBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="b"
                 :cancel="() => {view.b = 'view';}"
                 :success="() => {view.b = 'view';}"
                 :type="view.b"
                 />
             <CommunicationBlock
-                :options="{userA: flow.userA, userB: flow.userB}" 
+                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                 v-model="c"
                 :cancel="() => {view.c = '';}"
                 :success="() => {view.c = 'view';}"
@@ -156,8 +164,10 @@ import {defineComponent} from "vue"
 import { flowObject, flowSchemeOption, flowSchemeCommunication, flowSchemeInfo } from "../../types";
 import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
+import OptionsBlock from "../components/options-block.vue"
 import InfoBlock from "../components/info-block.vue"
 import Flows from "../stores/flows";
+import Flow from "../stores/flow";
 import _ from "lodash";
 import { Icon } from '@iconify/vue';
 
@@ -175,12 +185,18 @@ const findChildObject = (id: string | undefined, scheme: Array<flowSchemeOption 
 
 const orderScheme = (
         array: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>, 
-        scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>
+        scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>,
+        selectedOptions: Array<{schemeId: string, optionId: string}>
     ) => {
     let lastArrayItem = array[array.length - 1];
-    let prevArrayItem = array[array.length - 2];
+    // let prevArrayItem = array[array.length - 2];
     if (!lastArrayItem) {
         return array;
+    }
+
+    if (lastArrayItem.type == 'options') {
+        console.log(lastArrayItem.type == 'options',selectedOptions);
+        return array
     }
 
     let child = findChildObject(lastArrayItem.id, scheme)
@@ -197,18 +213,19 @@ const orderScheme = (
 
 export default defineComponent ({ 
     name: "homePage",
-    components: {Toggle, Icon, CommunicationBlock, InfoBlock},
+    components: {Toggle, Icon, CommunicationBlock, OptionsBlock, InfoBlock},
     props: [],
     setup() {
         const flows = Flows()
+        const flow = Flow()
         return {
             flows,
+            flow,
         }
     },
     data() {
         return {
             mode: "edit",
-            flow: null as null | flowObject,
             addBlocks: 1024
         }
     },
@@ -217,16 +234,15 @@ export default defineComponent ({
             if (!this.flow) {
                 return []
             }
-            var test = _.shuffle(this.flow.scheme) as Array<flowSchemeOption>
+            var test = _.shuffle(this.flow.model.scheme) as Array<flowSchemeOption>
             var array = []
             var firstBlock = findChildObject(undefined, test);
 
             if (!firstBlock) {
                 return []
             }
-
             array.push(firstBlock)
-            orderScheme(array, test)
+            orderScheme(array, test, this.flow.selectedOptions)
             
             var res = _.map(array, (scheme, index) => {
                 if (!scheme.editType) {
@@ -255,69 +271,33 @@ export default defineComponent ({
     methods: {
         loadFlow() {
             this.flows.load(this.$route.params.flowId.toString()).then((flow) => {
-                this.flow = flow;
+                this.flow.set(flow);
             })
         },
-        addBlock(option: 'communication' | 'info', parentId = undefined as undefined | string) {
+        addBlock(option: 'communication' | 'info' | 'options', parentId = undefined as undefined | string) {
             this.addBlocks = 1024
-            let parent = undefined as undefined | flowSchemeOption;
-            const id = new Date().getTime().toString(16);
-
-            if (!this.flow) {
-                return
-            }
-
-            let sibling = _.find(this.scheme, (scheme:flowSchemeOption) => {
-                return scheme.parentId == parentId
-            })
-
-            if (sibling) {
-                sibling.parentId = id
-            }
-
-            if (parentId) {
-                parent = _.find(this.scheme, (scheme:flowSchemeOption) => {
-                    return scheme.id == parentId
-                })
-            }
-
-            if (option == 'communication') {
-                this.flow.scheme.push({
-                    type: 'communication',
-                    id: id,
-                    parentId: parentId,
-                    position: parent?.position == 'userA' ? 'userB' : 'userA',
-                    content: '',
-                    cancel: this.cancelNewBlock,
-                    editType: 'add'
-                })
-            } else if (option == 'info') {
-                this.flow.scheme.push({
-                    type: 'info',
-                    id: id,
-                    parentId: parentId,
-                    position: parent?.position == 'userA' ? 'userB' : 'userA',
-                    content: '',
-                    cancel: this.cancelNewBlock,
-                    editType: 'add'
-                })
-            }
             
-            
-            this.flows.update(this.flow).then(newFlow => {
-                this.flow = newFlow
+            this.flow.addSchemeItem(option, parentId, {
+                cancel: this.cancelNewBlock,
+            }).then((schemeItem: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+
+                setTimeout(() => {
+                    if (this.$refs[schemeItem.id]) {
+                        this.$refs[schemeItem.id][0].scrollIntoView({behavior: "smooth", block: "center", inline: "center"})
+                    }
+                })
             })
-        },
+        },  
         updateParentId(item: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             if (!this.flow) {
                 return
             }
 
-            let parentItem = _.find(this.flow.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+            let parentItem = _.find(this.flow.model.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
                 return scheme.id == item.parentId
             })
             
-            let childItem = _.find(this.flow.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+            let childItem = _.find(this.flow.model.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
                 return scheme.parentId == item.id
             })
         
@@ -329,17 +309,18 @@ export default defineComponent ({
         },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
-            if (!this.flow) {
-                return
-            }
-            let parent = scheme
-            this.updateParentId(parent)
+            // if (!this.flow) {
+            //     return
+            // }
 
-            this.flow.scheme = _.omitBy(this.flow.scheme.filter((item) => { return item.id != scheme.id}), _.isEmpty)
+            this.flow.removeSchemeItem(scheme)
+
+            // let parent = scheme
+            // this.updateParentId(parent)
+
+            // this.flow.model.scheme = _.omitBy(this.flow.model.scheme.filter((item) => { return item.id != scheme.id}), _.isEmpty)
             
-            this.flows.update(this.flow).then(newFlow => {
-                this.flow = newFlow
-            })
+            // this.flow.model.update()
         },
         cancelNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
@@ -352,23 +333,19 @@ export default defineComponent ({
             }
             
             if (scheme.editType == 'add') {
-                this.flow.scheme.pop()
+                this.flow.model.scheme.pop()
             }
             
-            this.flows.update(this.flow).then(newFlow => {
-                this.flow = newFlow
-            })
+            this.flow.update()
         },
-        addNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+        addNewBlock(schemeItem: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
             if (!this.flow) {
                 return
             }
             
-            scheme.editType = 'view'
-            this.flows.update(this.flow).then(newFlow => {
-                this.flow = newFlow
-            })
+            schemeItem.editType = 'view'
+            this.flow.update()
         },
     }
 })

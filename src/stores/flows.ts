@@ -6,7 +6,7 @@ const db = new PouchDB("flows")
 
 
 export const flowsDataStore = defineStore({
-    id: "projectData",
+    id: "flows",
     state: () => ({
         flows: [] as Array<flowObject>,
         flowId: "",

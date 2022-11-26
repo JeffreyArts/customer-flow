@@ -26,7 +26,7 @@
                             <span class="new-flow-form-error" v-if="userB.error">{{userB.error}}</span>
                         </div>
                     </div>
-                    <button type="submit" class="c-blue large">Voeg toe</button>
+                    <button type="submit" class="button c-blue large">Voeg toe</button>
                 </form>
 
             </section>

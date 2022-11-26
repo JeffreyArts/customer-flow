@@ -15,9 +15,9 @@
                     selected: modelValue.position == 'userB',
                     bgcolor: '#f6b0c1',
                 }, {
-                    id:'universal',
-                    name: 'Universeel',
-                    selected: modelValue.position == 'universal',
+                    id:'both',
+                    name: 'Beide',
+                    selected: modelValue.position == 'both',
                     bgcolor: '#ccc',
                 }, {
                     id:'userB',
@@ -26,7 +26,7 @@
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="addContent" v-model="modelValue.content" />
             </section>
             
             <footer class="info-block-add-footer-container">
@@ -56,9 +56,9 @@
                     selected: modelValue.position == 'userB',
                     bgcolor: '#f6b0c1',
                 }, {
-                    id:'universal',
-                    name: 'Universeel',
-                    selected: modelValue.position == 'universal',
+                    id:'both',
+                    name: 'Beide',
+                    selected: modelValue.position == 'both',
                     bgcolor: '#ccc',
                 }, {
                     id:'userB',
@@ -67,7 +67,7 @@
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="editContent" v-model="modelValue.content" />
             </section>
             
             <footer class="info-block-add-footer-container">
@@ -120,6 +120,12 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
+        if (this.type == 'add') {
+            let input = this.$refs['addContent'] as HTMLTextAreaElement;
+            if (input) {
+                input.focus();
+            }
+        }
     },
     unmounted() {
         

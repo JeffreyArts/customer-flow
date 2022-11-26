@@ -110,6 +110,23 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
+        
+    },
+    watch: {
+        type: {
+            handler: function (val, oldVal) {
+                console.log("MOUNTED", this.type)
+                if (this.type == 'add') {
+                    setTimeout(() => {
+                    })
+                    let input = this.$refs['addContent'] as HTMLTextAreaElement;
+                    console.log(input)
+                    if (input) {
+                        input.focus();
+                    }
+                }
+            },
+        }
     },
     unmounted() {
         
