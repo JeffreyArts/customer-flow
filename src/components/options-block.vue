@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="option-block-row" v-if="selectedOption < 777">
-                Optie type
+                Optie type {{selectedSchemeItem?.parentId}}
                 <select class="input" @change="changeBlock" v-model="optionBlock">
                     <option value="communication">Communicatie blok</option>
                     <option value="info">Info blok</option>
@@ -55,7 +55,7 @@
             <div class="option-block-buttons">
                 
                 <button class="button ghost">Annuleren</button>
-                <button class="button c-blue" @click="addOptionsBlock">Optie toevoegen</button>
+                <button class="button c-blue" @click="addOptionsBlock">Opties toevoegen</button>
             </div>
         </div>
         
@@ -232,8 +232,9 @@ export default defineComponent({
             }
 
             if (this.type == 'view') {
+                // console.log(this.modelValue.options[index].schemeId)
                 this.flow.selectOption({
-                    schemeId: this.modelValue.schemeId,
+                    schemeId: this.modelValue.id,
                     optionId: this.modelValue.options[index].schemeId
                 })
             }
@@ -254,7 +255,8 @@ export default defineComponent({
                     await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
                     this.modelValue.options[this.selectedOption].schemeId = undefined
                 }
-                
+                console.log("optionBlock", this.optionBlock)
+                // console.log(this.modelValue.id)
                 this.flow.addSchemeItem(this.optionBlock, this.modelValue.id, {
                     // success: this.confirmAddedOption
                 }).then(schemeItem => {

@@ -1,6 +1,5 @@
 <template>
     <div class="page" v-if="flow && flow.model">
-
         <div to="/" class="page-top-right">
                 
             <toggle :options="[{
@@ -13,7 +12,7 @@
                 name: '👁️',
                 selected: false,
                 bgcolor: '#fff',
-            }]" v-model="mode" />
+            }]" v-model="mode" @click="resetSchemeView"/>
         </div>
 
         <header class="page-header">
@@ -83,7 +82,7 @@
                 
                 <footer class="block-edit-footer" v-if="mode == 'edit' && scheme[i].editType == 'view'">
                     <button class="button ghost c-red" @click="removeBlock(scheme[i])">verwijder</button>
-                    <button class="button ghost" @click="addBlocks = i"> <Icon icon="material-symbols:add-rounded" /></button>
+                    <button class="button ghost" @click="addBlocks = i" v-if="scheme[i].type != 'options'"> <Icon icon="material-symbols:add-rounded" /></button>
                     <button class="button ghost c-blue" @click="scheme[i].editType = 'edit'">bewerk</button>
                 </footer>
 
@@ -160,7 +159,7 @@
 
 
 <script lang="ts">
-import {defineComponent} from "vue"
+import {defineComponent, triggerRef} from "vue"
 import { flowObject, flowSchemeOption, flowSchemeCommunication, flowSchemeInfo } from "../../types";
 import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
@@ -176,6 +175,11 @@ const findChildObject = (id: string | undefined, scheme: Array<flowSchemeOption 
     let foundObject = null;
     for (let i = 0; i < scheme.length; i++) {
         if (scheme[i].parentId == id) {
+            // get parent
+            // var a = _.find(scheme, (schemeItem) => {
+            //     return schemeItem.id == id
+            // })
+            // console.log("Parent:", a)
             return scheme[i];
             break;
         }
@@ -188,26 +192,51 @@ const orderScheme = (
         scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>,
         selectedOptions: Array<{schemeId: string, optionId: string}>
     ) => {
-    let lastArrayItem = array[array.length - 1];
-    // let prevArrayItem = array[array.length - 2];
-    if (!lastArrayItem) {
+    let lastSchemeItem = array[array.length - 1];
+    let parentSchemeItem = _.find(scheme, (schemeItem) => {
+        return schemeItem.id == lastSchemeItem.parentId
+    })
+    let child
+    // if (array.length >= 1 ) {
+    //     lastSchemeItem = _.find(scheme, (schemeItem) => {
+    //         console.log("array:", array[array.length-1].id, schemeItem.parentId)
+    //         return schemeItem.parentId == array[array.length-1].id;
+    //     });
+    // }
+    
+    if (!lastSchemeItem) {
         return array;
     }
 
-    if (lastArrayItem.type == 'options') {
-        console.log(lastArrayItem.type == 'options',selectedOptions);
-        return array
+    let selectedOption = selectedOptions.find((option) => option.schemeId == lastSchemeItem.id);
+    // console.log("Selected option", selectedOption?.optionId, parentSchemeItem?.id, parentSchemeItem?.content)
+
+    if (lastSchemeItem.type == 'options') {
+        if (!selectedOption) {
+            return array;
+        }
+        child = _.find(scheme, (item) => item.id == selectedOption.optionId);
+    } else {
+        child = findChildObject(lastSchemeItem.id, scheme)
     }
 
-    let child = findChildObject(lastArrayItem.id, scheme)
     if (!child) {
         return array;
     }
+    
+    let a = !!_.find(scheme, (item) => { return item.parentId == child.id})
+    if (a) {
+    }
 
     array.push(child);
-    if (array.length < scheme.length) {
-        orderScheme(array, scheme);
-    }
+    orderScheme(array, scheme, selectedOptions);
+
+    // if (lastSchemeItem.type == 'options') {
+    //     if (selectedOptions) {
+    //         console.log("A", selectedOptions[0].optionId)
+    //     }
+    // }
+
     return array
 }
 
@@ -226,11 +255,14 @@ export default defineComponent ({
     data() {
         return {
             mode: "edit",
-            addBlocks: 1024
+            addBlocks: 1024,
+            refreshKey: 0
         }
     },
     computed: {
         scheme() {
+            // console.log("Computed scheme")
+            this.refreshKey;
             if (!this.flow) {
                 return []
             }
@@ -264,6 +296,17 @@ export default defineComponent ({
             handler() {
                 this.loadFlow()
             }
+        },
+        flow: {
+            deep: true,
+            handler() {
+                if (this.flow.selectedOptions.length >= 1) {
+                    // Manually trigger computed scheme
+                    // console.log(this.flow.selectedOptions[0].optionId)
+                    this.refreshKey++;
+                }
+
+            }
         }
     },
     mounted() {
@@ -272,6 +315,7 @@ export default defineComponent ({
         loadFlow() {
             this.flows.load(this.$route.params.flowId.toString()).then((flow) => {
                 this.flow.set(flow);
+                console.log(this.flow)
             })
         },
         addBlock(option: 'communication' | 'info' | 'options', parentId = undefined as undefined | string) {
@@ -288,39 +332,13 @@ export default defineComponent ({
                 })
             })
         },  
-        updateParentId(item: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
-            if (!this.flow) {
-                return
-            }
-
-            let parentItem = _.find(this.flow.model.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
-                return scheme.id == item.parentId
-            })
-            
-            let childItem = _.find(this.flow.model.scheme, (scheme:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
-                return scheme.parentId == item.id
-            })
-        
-            if (!childItem) {
-                return
-            }
-
-            childItem.parentId = parentItem?.id
+        resetSchemeView() {
+            this.flow.selectedOptions = []
         },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
-            // if (!this.flow) {
-            //     return
-            // }
 
             this.flow.removeSchemeItem(scheme)
-
-            // let parent = scheme
-            // this.updateParentId(parent)
-
-            // this.flow.model.scheme = _.omitBy(this.flow.model.scheme.filter((item) => { return item.id != scheme.id}), _.isEmpty)
-            
-            // this.flow.model.update()
         },
         cancelNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024

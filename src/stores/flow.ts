@@ -42,8 +42,9 @@ export const flowDataStore = defineStore({
     id: "flow",
     state: () => ({
         model: null as flowObject | null,
+        updateTrigger: 0,
         flowId: "",
-        selectedOptions: [] as Array<string>,
+        selectedOptions: [] as Array<{schemeId: string, optionId: string}>,
     }),
     actions: {
         docToFlowobject(doc: any): flowObject {
@@ -78,7 +79,7 @@ export const flowDataStore = defineStore({
 
                 const doc = _.merge({}, this.model,_.pick( this.model, ["_id", "_rev", "userA", "userB", "interaction", "description", "scheme"]))
                 doc.scheme = _.map(doc.scheme, schemeItem => { return _.pick(schemeItem, ["id", "type", "parentId", "content", "position","options"])});
-
+                console.log(JSON.stringify(doc.scheme))
                 db.put(doc).then((res) => {
                     this.model._rev = res.rev
                     resolve(this.docToFlowobject(this.model))
@@ -105,24 +106,26 @@ export const flowDataStore = defineStore({
                     return Promise.reject()
                 }
 
-
+                
                 let parent = undefined as undefined | flowSchemeOption | flowSchemeCommunication | flowSchemeInfo;
                 let sibling = undefined as undefined | flowSchemeOption | flowSchemeCommunication | flowSchemeInfo;
                 const id = new Date().getTime().toString(16);
-
-
+                
+                
+                // console.log("Doe dingen2")
                 sibling = _.find(this.model.scheme, (schemeItem:flowSchemeOption) : flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
                     return schemeItem.parentId == parentId
                 })
                 
-                if (sibling) {
-                    sibling.parentId = id
-                }
-
                 parent = _.find(this.model.scheme, (scheme:flowSchemeOption) : flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
                     return scheme.id == parentId
                 })
-
+                
+                // if (sibling) {
+                //     sibling.parentId = id
+                // }
+                // console.log("Doe dingen3")
+                
                 schemeOptions.id = id
                 schemeOptions.parentId = parentId
                 schemeOptions.editType = "add"
@@ -132,8 +135,10 @@ export const flowDataStore = defineStore({
                 if (type == 'options') {
                     schemeOptions.options = [] as Array<string>
                 }
-
+                
+                console.log("Parent id:",schemeOptions.parentId)
                 this.model.scheme.push(schemeOptions)
+                // this.updateTrigger ++
                 this.update().then(() => {
                     return resolve(_.find(this.model.scheme, {id: id}) as flowSchemeOption | flowSchemeCommunication | flowSchemeInfo)
                 }).catch(reject)
@@ -175,6 +180,7 @@ export const flowDataStore = defineStore({
             } else {
                 this.selectedOptions.push(select)
             }
+            // console.log("Select option", select.optionId)
         }
     },
     getters: {
