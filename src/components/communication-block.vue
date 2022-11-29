@@ -1,31 +1,39 @@
 <template>
     <div class="communication-block-container">
         
-        <!-- Add communication block -->
-        <div class="communication-block-add" v-if="type == 'add'">
-            <header class="communication-block-add-header-container">
-                <h2 class="communication-block-add-header-title">Communicatie block toevoegen</h2>
-                <span class="communication-block-add-header-cancel" @click="cancelEdit">annuleren</span>
+        <!-- Add / edit communication block -->
+        <div class="communication-block-edit" v-if="type == 'add' || type=='edit'">
+            <header class="communication-block-edit-header-container" v-if="type == 'add'">
+                <h2 class="communication-block-edit-header-title">Communicatie block toevoegen</h2>
+                <span class="communication-block-edit-header-cancel" @click="cancelEdit">annuleren</span>
             </header>
             
-            <section class="communication-block-add-section-container">
+            <div class="communication-block-view" v-if="type == 'edit'" :class="{ '__isRight': modelValue.position == 'userB' }">
+                <section class="speech-bubble" :class="{ '__isRight': modelValue.position == 'userB' }">
+                    {{modelValue.content}}
+                </section>
+            </div>
+
+            
+            <section class="communication-block-edit-section-container">
                 <toggle :options="[{
                     id:'userA',
-                    name: options.userA,
+                    name: options?.userA,
                     selected: modelValue.position == 'userB',
                     bgcolor: '#f6b0c1',
                 }, {
                     id:'userB',
-                    name: options.userB,
+                    name: options?.userB,
                     selected: modelValue.position == 'userB',
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
                 <textarea class="input" id="" rows="4" ref="addContent" v-model="modelValue.content" />
             </section>
-            
-            <footer class="communication-block-add-footer-container">
-                <button class="button c-blue" @click="submitSuccess(modelValue)">Toevoegen</button>
+
+            <footer class="communication-block-edit-footer-container">
+                <button class="button ghost small" v-if="type == 'edit'" @click="cancelEdit">Annuleren</button>
+                <button class="button c-blue small" @click="submitSuccess()">Wijziging opslaan</button>
             </footer>
         </div>
         
@@ -35,37 +43,6 @@
                 {{modelValue.content}}
             </section>
         </div>
-        
-        <!-- Edit communication block -->
-        <div class="communication-block-edit" v-if="type == 'edit'">
-            <div class="communication-block-view" :class="{ '__isRight': modelValue.position == 'userB' }">
-                <section class="speech-bubble" :class="{ '__isRight': modelValue.position == 'userB' }">
-                    {{modelValue.content}}
-                </section>
-            </div>
-            
-            <section class="communication-block-add-section-container">
-                <toggle :options="[{
-                    id:'userA',
-                    name: options.userA,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#f6b0c1',
-                }, {
-                    id:'userB',
-                    name: options.userB,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#4dbb86',
-                }]" v-model="modelValue.position" />
-                
-                <textarea class="input" id="" rows="4" v-model="modelValue.content" />
-            </section>
-            
-            <footer class="communication-block-add-footer-container">
-                <button class="button ghost small" @click="cancelEdit">Annuleren</button>
-                <button class="button c-blue small" @click="submitSuccess(modelValue)">Wijziging opslaan</button>
-            </footer>
-        </div>
-        
     </div>
 </template>
 
@@ -110,7 +87,6 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
-        console.log("New component mounted")
         if (this.type == 'add') {
             let input = this.$refs['addContent'] as HTMLTextAreaElement;
             if (input) {
@@ -121,21 +97,16 @@ export default defineComponent({
     watch: {
         type: {
             handler: function (val, oldVal) {
-                console.log("MOUNTED", this.type)
-                if (this.type == 'add') {
+                if (this.type != 'view') {
                     setTimeout(() => {
+                        let input = this.$refs['addContent'] as HTMLTextAreaElement;
+                        if (input) {
+                            input.focus();
+                        }
                     })
-                    let input = this.$refs['addContent'] as HTMLTextAreaElement;
-                    console.log(input)
-                    if (input) {
-                        input.focus();
-                    }
                 }
             },
         }
-    },
-    unmounted() {
-        
     },
     methods: {
         cancelEdit() {
@@ -167,7 +138,7 @@ export default defineComponent({
     margin-bottom: 32px;
 }
 
-.communication-block-add-header-container {
+.communication-block-edit-header-container {
     // margin-top: 16px;
     margin-bottom: 16px;
     width: 100%;
@@ -176,13 +147,13 @@ export default defineComponent({
     align-items: flex-end;
 }
 
-.communication-block-add-header-title {
+.communication-block-edit-header-title {
     font-size: 24px;
     font-weight: 500;
     margin: 0 32px;
 }
 
-.communication-block-add-header-cancel {
+.communication-block-edit-header-cancel {
     color: #777;
     font-size: 16px;
     transition: .16s all linear;
@@ -195,7 +166,7 @@ export default defineComponent({
     }
 }
 
-.communication-block-add-section-container {
+.communication-block-edit-section-container {
     border: 2px dashed $grey;
     border-radius:16px;
     width: 100%;
@@ -208,7 +179,7 @@ export default defineComponent({
     }
 }
 
-.communication-block-add-footer-container {
+.communication-block-edit-footer-container {
     width: 100%;
     text-align: right;
     margin-top: 24px;
@@ -250,7 +221,7 @@ export default defineComponent({
         width: calc(50% - 32px);
     }
 
-    + .communication-block-add-section-container {
+    + .communication-block-edit-section-container {
         margin-top: 16px;
     }
 }

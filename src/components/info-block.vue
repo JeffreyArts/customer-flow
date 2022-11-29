@@ -1,17 +1,26 @@
 <template>
     <div class="info-block-container">
         
-        <!-- Add info block -->
-        <div class="info-block-add" v-if="type == 'add'">
-            <header class="info-block-add-header-container">
-                <h2 class="info-block-add-header-title">Info block toevoegen</h2>
-                <span class="info-block-add-header-cancel" @click="cancelEdit">annuleren</span>
+        <!-- Add / edit info block -->
+        <div class="info-block-edit" v-if="type == 'add' || type == 'edit'">
+            <header class="info-block-edit-header-container" v-if="type == 'add'">
+                <h2 class="info-block-edit-header-title">Info block toevoegen</h2>
+                <span class="info-block-edit-header-cancel" @click="cancelEdit">annuleren</span>
             </header>
+            <div class="info-block-view" 
+                :class="{ '__isRight': modelValue.position == 'userB', '__isLeft': modelValue.position == 'userA' }"
+                v-if="type == 'edit'">
+
+                <section class="info-box">
+                    {{modelValue.content}}
+                </section>
+            </div>
             
-            <section class="info-block-add-section-container">
+            
+            <section class="info-block-edit-section-container">
                 <toggle :options="[{
                     id:'userA',
-                    name: options.userA,
+                    name: options?.userA,
                     selected: modelValue.position == 'userB',
                     bgcolor: '#f6b0c1',
                 }, {
@@ -21,15 +30,16 @@
                     bgcolor: '#ccc',
                 }, {
                     id:'userB',
-                    name: options.userB,
+                    name: options?.userB,
                     selected: modelValue.position == 'userB',
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" ref="addContent" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="editContent" v-model="modelValue.content" />
             </section>
             
-            <footer class="info-block-add-footer-container">
+            <footer class="info-block-edit-footer-container">
+                <button class="button ghost small" v-if="type == 'edit'" @click="cancelEdit">Annuleren</button>
                 <button class="button c-blue" @click="submitSuccess()">Toevoegen</button>
             </footer>
         </div>
@@ -40,49 +50,13 @@
                 {{modelValue.content}}
             </section>
         </div>
-        
-        <!-- Edit info block -->
-        <div class="info-block-edit" v-if="type == 'edit'">
-            <div class="info-block-view" :class="{ '__isRight': modelValue.position == 'userB', '__isLeft': modelValue.position == 'userA' }">
-                <section class="info-box">
-                    {{modelValue.content}}
-                </section>
-            </div>
-            
-            <section class="info-block-add-section-container">
-                <toggle :options="[{
-                    id:'userA',
-                    name: options.userA,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#f6b0c1',
-                }, {
-                    id:'both',
-                    name: 'Beide',
-                    selected: modelValue.position == 'both',
-                    bgcolor: '#ccc',
-                }, {
-                    id:'userB',
-                    name: options.userB,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#4dbb86',
-                }]" v-model="modelValue.position" />
-                
-                <textarea class="input" id="" rows="4" ref="editContent" v-model="modelValue.content" />
-            </section>
-            
-            <footer class="info-block-add-footer-container">
-                <button class="button ghost small" @click="cancelEdit">Annuleren</button>
-                <button class="button c-blue small" @click="submitSuccess()">Update</button>
-            </footer>
-        </div>
-        
     </div>
 </template>
 
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue"
-import { flowSchemeinfo } from "../../types";
+import { flowSchemeInfo } from "../../types";
 import Toggle from "../components/toggle.vue"
 import _ from "lodash"
 
@@ -90,7 +64,7 @@ export default defineComponent({
     name: "info-block",
     props: {
         modelValue: {
-            type: Object as PropType<flowSchemeinfo>,
+            type: Object as PropType<flowSchemeInfo>,
             required: true
         },
         options: {
@@ -120,8 +94,8 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
-        if (this.type == 'add') {
-            let input = this.$refs['addContent'] as HTMLTextAreaElement;
+        if (this.type != 'view') {
+            let input = this.$refs['editContent'] as HTMLTextAreaElement;
             if (input) {
                 input.focus();
             }
@@ -158,8 +132,7 @@ export default defineComponent({
     margin-bottom: 32px;
 }
 
-.info-block-add-header-container {
-    // margin-top: 16px;
+.info-block-edit-header-container {
     margin-bottom: 16px;
     width: 100%;
     display: flex;
@@ -167,13 +140,13 @@ export default defineComponent({
     align-items: flex-end;
 }
 
-.info-block-add-header-title {
+.info-block-edit-header-title {
     font-size: 24px;
     font-weight: 500;
     margin: 0 32px;
 }
 
-.info-block-add-header-cancel {
+.info-block-edit-header-cancel {
     color: #777;
     font-size: 16px;
     transition: .16s all linear;
@@ -186,7 +159,7 @@ export default defineComponent({
     }
 }
 
-.info-block-add-section-container {
+.info-block-edit-section-container {
     border: 2px dashed $grey;
     border-radius:16px;
     width: 100%;
@@ -199,7 +172,7 @@ export default defineComponent({
     }
 }
 
-.info-block-add-footer-container {
+.info-block-edit-footer-container {
     width: 100%;
     text-align: right;
     margin-top: 24px;
@@ -210,8 +183,6 @@ export default defineComponent({
         }
     }
 }
-
-
 
 
 .info-block-view {
@@ -236,7 +207,7 @@ export default defineComponent({
         transform: translateX(calc(50% + 32px));
     }
 
-    + .info-block-add-section-container {
+    + .info-block-edit-section-container {
         margin-top: 16px;
     }
 }

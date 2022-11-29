@@ -28,7 +28,7 @@
                 </div>
             </header>
 
-            <div class="flow-buttons" v-if="mode == 'edit' && flow.model.scheme.length == 0">
+            <div class="flow-buttons" v-if="mode == 'edit' && flow.model.scheme.length < 1">
                 <span class="flow-button">
                     <button class="button" @click="addBlock('options')">
                         <Icon icon="material-symbols:add-rounded" />
@@ -106,53 +106,7 @@
                         </button>
                     </span>
                 </div>
-                
             </div>
-
-            
-<!-- 
-
-            <InfoBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="a"
-                :type="view.a"
-            />
-            <InfoBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="b"
-                :cancel="() => {view.b = 'view';}"
-                :success="() => {view.b = 'view';}"
-                :type="view.b"
-                />
-            <InfoBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="c"
-                :cancel="() => {view.c = '';}"
-                :success="() => {view.c = 'view';}"
-                :type="view.c"
-            /> -->
-<!-- 
-            
-            
-            <CommunicationBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="a"
-                :type="view.a"
-            />
-            <CommunicationBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="b"
-                :cancel="() => {view.b = 'view';}"
-                :success="() => {view.b = 'view';}"
-                :type="view.b"
-                />
-            <CommunicationBlock
-                :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                v-model="c"
-                :cancel="() => {view.c = '';}"
-                :success="() => {view.c = 'view';}"
-                :type="view.c"
-            /> -->
         </div>
     </div>
 </template>
@@ -170,21 +124,14 @@ import Flow from "../stores/flow";
 import _ from "lodash";
 import { Icon } from '@iconify/vue';
 
-const findChildObject = (id: string | undefined, scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>) => {
-    let found = false;
-    let foundObject = null;
+const findChildObject = (id: string | undefined, scheme: Array<flowSchemeOption | flowSchemeCommunication | flowSchemeInfo>) : undefined | flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
     for (let i = 0; i < scheme.length; i++) {
         if (scheme[i].parentId == id) {
-            // get parent
-            // var a = _.find(scheme, (schemeItem) => {
-            //     return schemeItem.id == id
-            // })
-            // console.log("Parent:", a)
             return scheme[i];
             break;
         }
     }
-    return foundObject;
+    return undefined;
 }
 
 const orderScheme = (
@@ -196,20 +143,13 @@ const orderScheme = (
     let parentSchemeItem = _.find(scheme, (schemeItem) => {
         return schemeItem.id == lastSchemeItem.parentId
     })
-    let child
-    // if (array.length >= 1 ) {
-    //     lastSchemeItem = _.find(scheme, (schemeItem) => {
-    //         console.log("array:", array[array.length-1].id, schemeItem.parentId)
-    //         return schemeItem.parentId == array[array.length-1].id;
-    //     });
-    // }
-    
+    let child = undefined as undefined | flowSchemeOption | flowSchemeCommunication | flowSchemeInfo;
+
     if (!lastSchemeItem) {
         return array;
     }
 
     let selectedOption = selectedOptions.find((option) => option.schemeId == lastSchemeItem.id);
-    // console.log("Selected option", selectedOption?.optionId, parentSchemeItem?.id, parentSchemeItem?.content)
 
     if (lastSchemeItem.type == 'options') {
         if (!selectedOption) {
@@ -224,19 +164,12 @@ const orderScheme = (
         return array;
     }
     
-    let a = !!_.find(scheme, (item) => { return item.parentId == child.id})
-    if (a) {
-    }
+    // let a = !!_.find(scheme, (item) => { return item.parentId == child.id})
+    // if (a) {
+    // }
 
     array.push(child);
     orderScheme(array, scheme, selectedOptions);
-
-    // if (lastSchemeItem.type == 'options') {
-    //     if (selectedOptions) {
-    //         console.log("A", selectedOptions[0].optionId)
-    //     }
-    // }
-
     return array
 }
 
@@ -261,21 +194,20 @@ export default defineComponent ({
     },
     computed: {
         scheme() {
-            // console.log("Computed scheme")
             this.refreshKey;
-            if (!this.flow) {
+            if (!this.flow || !this.flow.model) {
                 return []
             }
-            var test = _.shuffle(this.flow.model.scheme) as Array<flowSchemeOption>
+
             var array = []
-            var firstBlock = findChildObject(undefined, test);
+            var firstBlock = findChildObject(undefined, this.flow.model.scheme);
 
             if (!firstBlock) {
                 return []
             }
             array.push(firstBlock)
-            orderScheme(array, test, this.flow.selectedOptions)
-            // console.log(this.flow.model.scheme)
+            orderScheme(array, this.flow.model.scheme, this.flow.selectedOptions)
+
             var res = _.map(array, (scheme, index) => {
                 if (!scheme.editType) {
                     scheme.cancel = this.cancelNewBlock
@@ -302,10 +234,8 @@ export default defineComponent ({
             handler() {
                 if (this.flow.selectedOptions.length >= 1) {
                     // Manually trigger computed scheme
-                    // console.log(this.flow.selectedOptions[0].optionId)
                     this.refreshKey++;
                 }
-
             }
         }
     },
@@ -334,17 +264,7 @@ export default defineComponent ({
         },  
         resetSchemeView() {
             this.flow.selectedOptions = []
-            this.$emit("resetSchemeView")
-            // this.flow.model.scheme[0].selectedOption = 777
-            // _.each(this.flow.model.scheme, (schemeItem) => {
-            //     if (schemeItem.type == 'options') {
-            //         schemeItem.selectedOption = 777
-            //         schemeItem.test = "777"
-
-            //         console.log("schemeItem:",schemeItem)
-            //     }
-            // })
-            // this.refreshKey++;
+            alert("Reset scheme view zou geselecteerde opties moeten deselecteren")
         },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
@@ -380,14 +300,12 @@ export default defineComponent ({
         },
         showFlowButtons(index:number) {
             this.addBlocks = index;
-            
-            
+
             setTimeout(() => {
                 let flowButtons = this.$refs['flow-buttons'] as Array<HTMLElement>;
                 if (!flowButtons) {
                     return
                 }
-                console.log(flowButtons)
                 flowButtons[0].scrollIntoView({behavior: "smooth", block: "center", inline: "center"})
             })
 

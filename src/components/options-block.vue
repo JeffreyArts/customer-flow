@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="option-block-row" v-if="selectedOption < 777">
-                Optie type {{selectedSchemeItem?.parentId}}
+                Optie type 
                 <select class="input" @change="changeBlock" v-model="optionBlock">
                     <option value="communication">Communicatie blok</option>
                     <option value="info">Info blok</option>
@@ -126,12 +126,6 @@ export default defineComponent({
         }
     },
     watch: {
-        flow: {
-            handler: function (val) {
-                // console.log("flow changed", val)
-            },
-            deep: true
-        },
         type: {
             handler: function (newVal, oldVal) {
                 if (oldVal == 'view' && newVal == 'edit') {
@@ -167,10 +161,12 @@ export default defineComponent({
     methods: {
         addOption(event: Event) {
             event.preventDefault();
+            
             if (!this.newOption) {
                 this.selectedOption = 777;
                 return
             }
+
             this.modelValue.options.push({
                 name: this.newOption,
                 schemeId: undefined
@@ -183,14 +179,6 @@ export default defineComponent({
             }
 
             this.newOption = "";
-        },
-        async removeSchemeItem() {
-            if (this.modelValue.options[this.selectedOption]?.schemeId) {
-                await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
-            }
-            this.modelValue.options[this.selectedOption].schemeId = undefined;
-            this.optionBlock = null
-            this.flow.update()
         },
         removeOptionBlock() {
             // remove option from options where this.selectedOption is the index
@@ -240,7 +228,6 @@ export default defineComponent({
             }
             
             if (this.type == 'view') {
-                // console.log(this.modelValue.options[index].schemeId)
                 this.flow.selectOption({
                     schemeId: this.modelValue.id,
                     optionId: this.modelValue.options[index].schemeId
@@ -252,8 +239,6 @@ export default defineComponent({
             this.selectedOption = 777
         },
         addOptionsBlock() {
-            // this.original = _.cloneDeep(this.modelValue)
-
             if (this.success) {
                 this.success(this.modelValue)
             }
@@ -274,9 +259,7 @@ export default defineComponent({
                     this.modelValue.options[this.selectedOption].schemeId = undefined
                 }
                 
-                // console.log(this.modelValue.id)
                 this.flow.addSchemeItem(this.optionBlock, this.modelValue.id, {
-                    // success: this.confirmAddedOption
                     editType: 'view',
                     position: this.modelValue.position
                 }).then(schemeItem => {
