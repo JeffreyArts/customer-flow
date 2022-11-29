@@ -113,30 +113,33 @@ export const flowDataStore = defineStore({
                 
                 
                 // console.log("Doe dingen2")
-                sibling = _.find(this.model.scheme, (schemeItem:flowSchemeOption) : flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
-                    return schemeItem.parentId == parentId
-                })
-                
                 parent = _.find(this.model.scheme, (scheme:flowSchemeOption) : flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
                     return scheme.id == parentId
                 })
+               
                 
-                // if (sibling) {
-                //     sibling.parentId = id
-                // }
+                if (parent && parent.type != "options") {
+                    sibling = _.find(this.model.scheme, (schemeItem:flowSchemeOption) : flowSchemeOption | flowSchemeCommunication | flowSchemeInfo => {
+                        return schemeItem.parentId == parentId
+                    })
+                }
+                    
+                if (sibling) {
+                    sibling.parentId = id
+                }
                 // console.log("Doe dingen3")
-                
+                let position = schemeOptions.position || parent?.position == 'userA' ? 'userB' : 'userA'
                 schemeOptions.id = id
                 schemeOptions.parentId = parentId
-                schemeOptions.editType = "add"
+                schemeOptions.editType = schemeOptions.editType || "add"
                 schemeOptions.type = type
-                schemeOptions.position =  parent?.position == 'userA' ? 'userB' : 'userA'
+                schemeOptions.position = position
                 
                 if (type == 'options') {
                     schemeOptions.options = [] as Array<string>
                 }
                 
-                console.log("Parent id:",schemeOptions.parentId)
+                console.log("Parent id:", schemeOptions)
                 this.model.scheme.push(schemeOptions)
                 // this.updateTrigger ++
                 this.update().then(() => {

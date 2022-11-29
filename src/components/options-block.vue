@@ -1,7 +1,7 @@
     <template>
     <div class="option-block-container" :class="[type == 'add' ? '__isEdit' : '']">
         <!-- Add option block -->
-        <div class="option-block-add" v-if="type == 'add'" :class="{ '__isRight': modelValue.position == 'userB' }">
+        <div class="option-block-add" v-if="type == 'add' || type == 'edit'" :class="{ '__isRight': modelValue.position == 'userB' }">
             <form class="option-block-buttons" @submit="addOption">
                 <span class="option-button" 
                         :class="[selectedOption == index ? '__isSelected' : '__notSelected']"
@@ -34,9 +34,9 @@
                     }]" v-model="modelValue.position" />
                 </div>
                 <!-- {{selectedSchemeItem}} -->
-                <div class="option-block-option-buttons" v-if="selectedOption < 777">
-                    <button class="button ghost small" v-if="selectedSchemeItem" @click="removeSchemeItem">Annuleren</button>
-                    <button class="button ghost small c-blue" @click="updateSchemeItem">Opslaan</button>
+                <div class="option-block-option-buttons" v-if="selectedOption >= 777">
+                    <button class="button ghost small" @click="cancelChanges">Annuleren</button>
+                    <button class="button ghost small c-blue" v-if="modelValue.options.length >=2" @click="addOptionsBlock">Opslaan</button>
                     <button class="button ghost small c-red" @click="removeOption">Verwijderen</button>
                 </div>
             </div>
@@ -52,10 +52,11 @@
                 <textarea rows="3" class="input" v-model="tempContentValue" v-if="selectedOption < 777 && optionBlock" />
             </div>
 
-            <div class="option-block-buttons">
+            <div class="option-block-buttons full-width" v-if="selectedOption < 777">
                 
-                <button class="button ghost">Annuleren</button>
-                <button class="button c-blue" @click="addOptionsBlock">Opties toevoegen</button>
+                <button class="button ghost" v-if="selectedSchemeItem" @click="removeSchemeItem">Annuleren</button>
+                <button class="button c-red" @click="removeOption">Keuze verwijderen</button>
+                <button class="button c-blue" v-if="selectedSchemeItem" @click="updateSchemeItem">Keuze opslaan</button>
             </div>
         </div>
         
@@ -70,36 +71,6 @@
                     {{option.name}}
                 </span>
             </form>
-        </div>
-        
-        <!-- Edit option block -->
-        <div class="option-block-edit" v-if="type == 'edit'">
-            <div class="option-block-view" :class="{ '__isRight': modelValue.position == 'userB' }">
-                <section class="speech-bubble" :class="{ '__isRight': modelValue.position == 'userB' }">
-                    {{modelValue.content}}
-                </section>
-            </div>
-            
-            <section class="option-block-add-section-container">
-                <toggle :options="[{
-                    id:'userA',
-                    name: options.userA,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#f6b0c1',
-                }, {
-                    id:'userB',
-                    name: options.userB,
-                    selected: modelValue.position == 'userB',
-                    bgcolor: '#4dbb86',
-                }]" v-model="modelValue.position" />
-                
-                <textarea class="input" id="" rows="4" v-model="modelValue.content" />
-            </section>
-            
-            <footer class="option-block-add-footer-container">
-                <button class="button ghost small" @click="cancelEdit">Annuleren</button>
-                <button class="button c-blue small" @click="submitSuccess(modelValue)">Wijziging opslaan</button>
-            </footer>
         </div>
     </div>
 </template>
@@ -153,6 +124,14 @@ export default defineComponent({
             tempContentValue: "",
         }
     },
+    watch: {
+        flow: {
+            handler: function (val) {
+                // console.log("flow changed", val)
+            },
+            deep: true
+        },
+    },
     components: {
         Toggle, Icon
     },
@@ -203,6 +182,12 @@ export default defineComponent({
             this.modelValue.options[this.selectedOption].schemeId = undefined;
             this.optionBlock = null
         },
+        removeOptionBlock() {
+            // remove option from options where this.selectedOption is the index
+            this.modelValue.options.splice(this.selectedOption, 1)
+            this.selectedOption = 777
+            this.flow.update()
+        },
         removeOption() {
             // remove option from options where this.selectedOption is the index
             this.modelValue.options.splice(this.selectedOption, 1)
@@ -246,19 +231,20 @@ export default defineComponent({
                 this.success(this.modelValue)
             }
         },
-        // confirmAddedOption() {
-        //     this.optionsConfirmed[this.selectedOption] = true
-        // },
+        cancelChanges() {
+            alert("Doet nog niks")
+        },
         async changeBlock(event: Event) {
             if (this.optionBlock) {
                 if (this.modelValue.options[this.selectedOption].schemeId) {
                     await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
                     this.modelValue.options[this.selectedOption].schemeId = undefined
                 }
-                console.log("optionBlock", this.optionBlock)
                 // console.log(this.modelValue.id)
                 this.flow.addSchemeItem(this.optionBlock, this.modelValue.id, {
                     // success: this.confirmAddedOption
+                    editType: 'view',
+                    position: this.modelValue.position
                 }).then(schemeItem => {
                     this.modelValue.options[this.selectedOption].schemeId = schemeItem.id
                 })
@@ -287,9 +273,14 @@ export default defineComponent({
     gap: 8px;
     transition: $transitionDefault;
     justify-content: flex-start;
+    &.full-width {
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
 
-.option-block-add {
+.option-block-add,
+.option-block-view {
     display: flex;
     flex-flow: wrap;
     
@@ -297,6 +288,9 @@ export default defineComponent({
         .option-block-buttons {
             justify-content: flex-end;
             translate: 100% 0;
+            &.full-width {
+                translate: 0 0;
+            }
         }
     }
 }

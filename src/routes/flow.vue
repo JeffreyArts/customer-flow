@@ -70,7 +70,7 @@
                     />
                     
                     <!-- :options="{userA: flow.model.userA, userB: flow.model.userB}"  -->
-                    <OptionsBlock
+                <OptionsBlock
                     :options="{userA: flow.model.userA, userB: flow.model.userB}" 
                     v-model="scheme[i]"
                     :scheme="flow.model.scheme"
@@ -275,7 +275,7 @@ export default defineComponent ({
             }
             array.push(firstBlock)
             orderScheme(array, test, this.flow.selectedOptions)
-            
+            // console.log(this.flow.model.scheme)
             var res = _.map(array, (scheme, index) => {
                 if (!scheme.editType) {
                     scheme.cancel = this.cancelNewBlock
@@ -315,7 +315,6 @@ export default defineComponent ({
         loadFlow() {
             this.flows.load(this.$route.params.flowId.toString()).then((flow) => {
                 this.flow.set(flow);
-                console.log(this.flow)
             })
         },
         addBlock(option: 'communication' | 'info' | 'options', parentId = undefined as undefined | string) {
@@ -334,6 +333,17 @@ export default defineComponent ({
         },  
         resetSchemeView() {
             this.flow.selectedOptions = []
+            this.$emit("resetSchemeView")
+            // this.flow.model.scheme[0].selectedOption = 777
+            // _.each(this.flow.model.scheme, (schemeItem) => {
+            //     if (schemeItem.type == 'options') {
+            //         schemeItem.selectedOption = 777
+            //         schemeItem.test = "777"
+
+            //         console.log("schemeItem:",schemeItem)
+            //     }
+            // })
+            // this.refreshKey++;
         },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
