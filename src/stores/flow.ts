@@ -153,24 +153,28 @@ export const flowDataStore = defineStore({
             return _.find(this.model.scheme, {id: schemeItemId})
         },
         removeSchemeItem(removedSchemeItem: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo | string) : Promise<flowObject> {
-            if (_.isString(removedSchemeItem)) {
-                removedSchemeItem = _.find(this.model.scheme, {id: removedSchemeItem}) as flowSchemeOption | flowSchemeCommunication | flowSchemeInfo
-            }
-            if (_.isNull(this.model)) {
-                console.error(new Error("No model set"))
-                return Promise.reject()
-            }
-            
-            // Update children by setting their parentId to the parentId of the removed item
-            _.each(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
-                if (item.parentId == removedSchemeItem.id) {
-                    item.parentId = removedSchemeItem.parentId
+            return new Promise((resolve, reject) => {
+                
+                if (_.isNull(this.model)) {
+                    console.error(new Error("No model set"))
+                    return reject()
                 }
-            })
-            
-            // Remove removedSchemeItem
-            this.model.scheme = _.filter(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
-                return item.id != removedSchemeItem.id
+                
+                if (_.isString(removedSchemeItem)) {
+                    removedSchemeItem = _.find(this.model.scheme, {id: removedSchemeItem}) as flowSchemeOption | flowSchemeCommunication | flowSchemeInfo
+                }
+                // Update children by setting their parentId to the parentId of the removed item
+                _.each(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+                    if (item.parentId == removedSchemeItem.id) {
+                        item.parentId = removedSchemeItem.parentId
+                    }
+                })
+                
+                // Remove removedSchemeItem
+                this.model.scheme = _.filter(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+                    return item.id != removedSchemeItem.id
+                })
+                resolve(this.model.scheme)
             })
         },
         selectOption(select: {schemeId: string, optionId: string}): void {

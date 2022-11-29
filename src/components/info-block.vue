@@ -84,6 +84,21 @@ export default defineComponent({
             required: false
         },
     },
+    watch: {
+        type: {
+            handler: function (val, oldVal) {
+                if (this.type != 'view') {
+                    setTimeout(() => {
+                        let input = this.$refs['editContent'] as HTMLTextAreaElement;
+                        if (input) {
+                            input.focus();
+                        }
+                        input.scrollIntoView({ behavior: 'smooth', block: "center" });
+                    })
+                }
+            },
+        }
+    },
     data: () => {
         return {
             original: {}
@@ -98,6 +113,7 @@ export default defineComponent({
             let input = this.$refs['editContent'] as HTMLTextAreaElement;
             if (input) {
                 input.focus();
+                input.scrollIntoView({ behavior: 'smooth', block: "center" });
             }
         }
     },

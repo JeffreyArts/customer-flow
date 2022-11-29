@@ -28,7 +28,7 @@
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" ref="addContent" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="editContent" v-model="modelValue.content" />
             </section>
 
             <footer class="communication-block-edit-footer-container">
@@ -77,6 +77,21 @@ export default defineComponent({
             required: false
         },
     },
+    watch: {
+        type: {
+            handler: function (val, oldVal) {
+                if (this.type != 'view') {
+                    setTimeout(() => {
+                        let input = this.$refs['editContent'] as HTMLTextAreaElement;
+                        if (input) {
+                            input.focus();
+                        }
+                        input.scrollIntoView({ behavior: 'smooth', block: "center" });
+                    })
+                }
+            },
+        }
+    },
     data: () => {
         return {
             original: {}
@@ -88,24 +103,10 @@ export default defineComponent({
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
         if (this.type == 'add') {
-            let input = this.$refs['addContent'] as HTMLTextAreaElement;
+            let input = this.$refs['editContent'] as HTMLTextAreaElement;
             if (input) {
                 input.focus();
             }
-        }
-    },
-    watch: {
-        type: {
-            handler: function (val, oldVal) {
-                if (this.type != 'view') {
-                    setTimeout(() => {
-                        let input = this.$refs['addContent'] as HTMLTextAreaElement;
-                        if (input) {
-                            input.focus();
-                        }
-                    })
-                }
-            },
         }
     },
     methods: {
