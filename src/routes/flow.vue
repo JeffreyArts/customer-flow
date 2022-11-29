@@ -28,20 +28,20 @@
                 </div>
             </header>
 
-            <div class="flow-modify-buttons" v-if="mode == 'edit' && flow.model.scheme.length == 0">
-                <span class="flow-modify-button">
+            <div class="flow-buttons" v-if="mode == 'edit' && flow.model.scheme.length == 0">
+                <span class="flow-button">
                     <button class="button" @click="addBlock('options')">
                         <Icon icon="material-symbols:add-rounded" />
                         Keuze toevoegen
                     </button>
                 </span>
-                <span class="flow-modify-button">
+                <span class="flow-button">
                     <button class="button" @click="addBlock('communication')">
                         <Icon icon="material-symbols:add-rounded" />
                         Commmunicatie blok toevoegen
                     </button>
                 </span>
-                <span class="flow-modify-button">
+                <span class="flow-button">
                     <button class="button" @click="addBlock('info')">
                         <Icon icon="material-symbols:add-rounded" />
                         Info blok toevoegen
@@ -82,24 +82,24 @@
                 
                 <footer class="block-edit-footer" v-if="mode == 'edit' && scheme[i].editType == 'view'">
                     <button class="button ghost c-red" @click="removeBlock(scheme[i])">verwijder</button>
-                    <button class="button ghost" @click="addBlocks = i" v-if="scheme[i].type != 'options'"> <Icon icon="material-symbols:add-rounded" /></button>
+                    <button class="button ghost" @click="showFlowButtons(i)" v-if="scheme[i].type != 'options'"> <Icon icon="material-symbols:add-rounded" /></button>
                     <button class="button ghost c-blue" @click="scheme[i].editType = 'edit'">bewerk</button>
                 </footer>
 
-                <div class="flow-modify-buttons" v-if="mode == 'edit' && addBlocks == i">
-                    <span class="flow-modify-button">
+                <div class="flow-buttons" ref="flow-buttons" v-if="mode == 'edit' && addBlocks == i">
+                    <span class="flow-button">
                         <button class="button" @click="addBlock('options', scheme[i].id)">
                             <Icon icon="material-symbols:add-rounded" />
                             Keuze toevoegen
                         </button>
                     </span>
-                    <span class="flow-modify-button">
+                    <span class="flow-button">
                         <button class="button" @click="addBlock('communication', scheme[i].id)">
                             <Icon icon="material-symbols:add-rounded" />
                             Communicatie blok toevoegen
                         </button>
                     </span>
-                    <span class="flow-modify-button">
+                    <span class="flow-button">
                         <button class="button" @click="addBlock('info', scheme[i].id)">
                             <Icon icon="material-symbols:add-rounded" />
                             Info blok toevoegen
@@ -325,8 +325,9 @@ export default defineComponent ({
             }).then((schemeItem: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
 
                 setTimeout(() => {
-                    if (this.$refs[schemeItem.id]) {
-                        this.$refs[schemeItem.id][0].scrollIntoView({behavior: "smooth", block: "center", inline: "center"})
+                    let domArray = this.$refs[schemeItem.id] as Array<HTMLElement>
+                    if (domArray) {
+                        domArray[0].scrollIntoView({behavior: "smooth", block: "center", inline: "center"})
                     }
                 })
             })
@@ -348,7 +349,9 @@ export default defineComponent ({
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
 
-            this.flow.removeSchemeItem(scheme)
+            this.flow.removeSchemeItem(scheme).then(() => {
+                this.flow.update()
+            })
         },
         cancelNewBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024
@@ -375,6 +378,20 @@ export default defineComponent ({
             schemeItem.editType = 'view'
             this.flow.update()
         },
+        showFlowButtons(index:number) {
+            this.addBlocks = index;
+            
+            
+            setTimeout(() => {
+                let flowButtons = this.$refs['flow-buttons'] as Array<HTMLElement>;
+                if (!flowButtons) {
+                    return
+                }
+                console.log(flowButtons)
+                flowButtons[0].scrollIntoView({behavior: "smooth", block: "center", inline: "center"})
+            })
+
+        }
     }
 })
 
@@ -397,13 +414,13 @@ export default defineComponent ({
     }
 }
 
-.flow-modify-buttons {
+.flow-buttons {
     display: flex;
     align-items: center;
     flex-flow: column;
     margin: 32px 0;
 }
-.flow-modify-button {
+.flow-button {
     margin-bottom: 8px;
     svg {
         transform: translate(-8px, 2px) scale(1.6);

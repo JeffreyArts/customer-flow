@@ -33,11 +33,11 @@
                         bgcolor: '#4dbb86',
                     }]" v-model="modelValue.position" />
                 </div>
-                <!-- {{selectedSchemeItem}} -->
+
                 <div class="option-block-option-buttons" v-if="selectedOption >= 777">
                     <button class="button ghost small" @click="cancelChanges">Annuleren</button>
                     <button class="button ghost small c-blue" v-if="modelValue.options.length >=2" @click="addOptionsBlock">Opslaan</button>
-                    <button class="button ghost small c-red" @click="removeOption">Verwijderen</button>
+                    <button class="button ghost small c-red" v-if="modelValue.editType == 'edit'" @click="removeOptionBlock">Verwijderen</button>
                 </div>
             </div>
             <div class="option-block-row" v-if="selectedOption < 777">
@@ -54,7 +54,7 @@
 
             <div class="option-block-buttons full-width" v-if="selectedOption < 777">
                 
-                <button class="button ghost" v-if="selectedSchemeItem" @click="removeSchemeItem">Annuleren</button>
+                <button class="button ghost" v-if="selectedSchemeItem" @click="cancelOptionChanges">Annuleren</button>
                 <button class="button c-red" @click="removeOption">Keuze verwijderen</button>
                 <button class="button c-blue" v-if="selectedSchemeItem" @click="updateSchemeItem">Keuze opslaan</button>
             </div>
@@ -119,7 +119,8 @@ export default defineComponent({
             newOption: "",
             selectedOption: 777,
             original: {},
-            optionBlock: null as null | "communication" | "info",
+            originalOption: {} as flowSchemeCommunication | flowSchemeInfo,
+            optionBlock: null as null | "options" | "communication" | "info",
             optionsConfirmed: [] as Array<string>,
             tempContentValue: "",
         }
@@ -130,6 +131,14 @@ export default defineComponent({
                 // console.log("flow changed", val)
             },
             deep: true
+        },
+        type: {
+            handler: function (newVal, oldVal) {
+                if (oldVal == 'view' && newVal == 'edit') {
+                    this.flow.selectedOptions = []
+                }
+            },
+            deep: false
         },
     },
     components: {
@@ -175,18 +184,26 @@ export default defineComponent({
 
             this.newOption = "";
         },
-        removeSchemeItem() {
+        async removeSchemeItem() {
             if (this.modelValue.options[this.selectedOption]?.schemeId) {
-                this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
+                await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
             }
             this.modelValue.options[this.selectedOption].schemeId = undefined;
             this.optionBlock = null
+            this.flow.update()
         },
         removeOptionBlock() {
             // remove option from options where this.selectedOption is the index
-            this.modelValue.options.splice(this.selectedOption, 1)
+            const promises = []
+            this.modelValue.options.forEach((option, index) => {
+                promises.push(this.flow.removeSchemeItem(option.schemeId))
+            })
+            promises.push(this.flow.removeSchemeItem(this.modelValue.id))
             this.selectedOption = 777
-            this.flow.update()
+
+            Promise.all(promises).then(() => {
+                this.flow.update()
+            })
         },
         removeOption() {
             // remove option from options where this.selectedOption is the index
@@ -202,20 +219,26 @@ export default defineComponent({
             this.selectedOption = 777
         },
         selectOption(index:number) {
+            if (this.selectedOption == index) {
+                this.selectedOption = 777
+                return
+            }
             this.selectedOption = index;
             this.optionBlock = null;
+
             
             if (this.modelValue.options[index]?.schemeId) {
                 let schemeItem = this.flow.getSchemeItem(this.modelValue.options[index].schemeId)
-
+                
                 if (schemeItem) {
+                    this.originalOption = schemeItem
                     this.optionBlock = schemeItem.type
                     this.tempContentValue = schemeItem.content
                 }
             } else {
                 this.tempContentValue = ""
             }
-
+            
             if (this.type == 'view') {
                 // console.log(this.modelValue.options[index].schemeId)
                 this.flow.selectOption({
@@ -224,15 +247,25 @@ export default defineComponent({
                 })
             }
         },
+        cancelOptionChanges() {
+            this.selectedSchemeItem.content = this.originalOption.content
+            this.selectedOption = 777
+        },
         addOptionsBlock() {
-            this.original = _.cloneDeep(this.modelValue)
+            // this.original = _.cloneDeep(this.modelValue)
 
             if (this.success) {
                 this.success(this.modelValue)
             }
         },
         cancelChanges() {
-            alert("Doet nog niks")
+            if (this.modelValue.editType == 'add') {
+                this.removeOptionBlock();
+                return
+            }
+            
+            alert("Deze optie werkt nog niet, maar moet nog wel gemaakt worden")
+            this.modelValue.editType = 'view'
         },
         async changeBlock(event: Event) {
             if (this.optionBlock) {
@@ -240,6 +273,7 @@ export default defineComponent({
                     await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
                     this.modelValue.options[this.selectedOption].schemeId = undefined
                 }
+                
                 // console.log(this.modelValue.id)
                 this.flow.addSchemeItem(this.optionBlock, this.modelValue.id, {
                     // success: this.confirmAddedOption
@@ -247,6 +281,7 @@ export default defineComponent({
                     position: this.modelValue.position
                 }).then(schemeItem => {
                     this.modelValue.options[this.selectedOption].schemeId = schemeItem.id
+                    this.flow.update()
                 })
             }
 

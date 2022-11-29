@@ -51,14 +51,23 @@ export const flowDataStore = defineStore({
             return _.pick(doc, ["_id", "_rev", "userA", "userB", "interaction", "description", "scheme"]) as flowObject
         },
         cleanUpScheme(): void {
+            if (!this.model) {
+                return;
+            }
             // Remove all scheme items that are not connected to a parent scheme item
             _.remove(this.model.scheme, schemeItem => {
                 if (schemeItem.parentId == undefined) {
                     return false
                 }
-
+                
+                if (schemeItem.type == "options" && schemeItem.options && schemeItem.options.length < 1) {
+                    return true
+                }
+                
                 return !_.find(this.model.scheme, {id: schemeItem.parentId})
             })
+            
+            console.log("Test:",this.model.scheme)
             if (this.model.scheme.length == 1) {
                 this.model.scheme[0].parentId = undefined;
             }
@@ -138,10 +147,9 @@ export const flowDataStore = defineStore({
                 if (type == 'options') {
                     schemeOptions.options = [] as Array<string>
                 }
-                
-                console.log("Parent id:", schemeOptions)
+
                 this.model.scheme.push(schemeOptions)
-                // this.updateTrigger ++
+                
                 this.update().then(() => {
                     return resolve(_.find(this.model.scheme, {id: id}) as flowSchemeOption | flowSchemeCommunication | flowSchemeInfo)
                 }).catch(reject)
@@ -171,7 +179,7 @@ export const flowDataStore = defineStore({
                 return item.id != removedSchemeItem.id
             })
 
-            return this.update()
+            // return this.update()
         },
         selectOption(select: {schemeId: string, optionId: string}): void {
             var alreadyPicked = _.find(this.selectedOptions, (option) => {

@@ -21,7 +21,7 @@
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="addContent" v-model="modelValue.content" />
             </section>
             
             <footer class="communication-block-add-footer-container">
@@ -110,7 +110,13 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
-        
+        console.log("New component mounted")
+        if (this.type == 'add') {
+            let input = this.$refs['addContent'] as HTMLTextAreaElement;
+            if (input) {
+                input.focus();
+            }
+        }
     },
     watch: {
         type: {
