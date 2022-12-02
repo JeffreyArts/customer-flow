@@ -264,7 +264,6 @@ export default defineComponent ({
         },  
         resetSchemeView() {
             this.flow.selectedOptions = []
-            alert("Reset scheme view zou geselecteerde opties moeten deselecteren")
         },
         removeBlock(scheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
             this.addBlocks = 1024

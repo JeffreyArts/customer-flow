@@ -128,11 +128,20 @@ export default defineComponent({
     watch: {
         type: {
             handler: function (newVal, oldVal) {
+                
                 if (oldVal == 'view' && newVal == 'edit') {
                     this.flow.selectedOptions = []
                 }
             },
             deep: false
+        },
+        flow: {
+            handler: function () {
+                if (this.flow.selectedOptions.length == 0) {
+                    this.selectedOption = 777
+                }
+            },
+            deep: true
         },
     },
     components: {
