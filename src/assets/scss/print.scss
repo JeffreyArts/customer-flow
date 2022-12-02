@@ -1,0 +1,41 @@
+@media print {
+    body{
+        -webkit-print-color-adjust:exact !important;
+        print-color-adjust:exact !important;
+    }
+
+    .side-menu-left,
+    .block-edit-footer,
+    .page-top-right {
+        display: none;
+    }
+
+    .page {
+        padding-top: 0;
+    }
+
+    .info-block-container,
+    .communication-block-container {
+        margin-bottom: 8px;
+    }
+
+    .option-block-container {
+        margin-bottom: 2px;
+    }
+
+    .speech-bubble {
+        padding: 16px 24px !important;
+    }
+
+    .page-title {
+        width: 100%;
+        font-size: 16px;
+        background-color: transparent;
+        color: $grey;
+        font-style: italic;
+    }
+    .flow-header {
+        margin-top: 12px;
+        margin-bottom: 16px;
+    }
+}

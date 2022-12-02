@@ -131,6 +131,9 @@ export default defineComponent({
         },
         submitSuccess() {
             this.$emit('update:type', 'view')
+            this.modelValue.content = this.modelValue.content.trim()
+            this.original = _.cloneDeep(this.modelValue)
+            
             if (this.success) {
                 this.success(this.modelValue)
             }

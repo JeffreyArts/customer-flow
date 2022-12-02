@@ -28,7 +28,7 @@
                     bgcolor: '#4dbb86',
                 }]" v-model="modelValue.position" />
                 
-                <textarea class="input" id="" rows="4" ref="editContent" v-model="modelValue.content" />
+                <textarea class="input" id="" rows="4" ref="editContent" v-on:keyup.enter="submitSuccess" v-model="modelValue.content" />
             </section>
 
             <footer class="communication-block-edit-footer-container">
@@ -102,7 +102,7 @@ export default defineComponent({
     },
     mounted() {
         this.original = _.cloneDeep(this.modelValue)
-        if (this.type == 'add') {
+        if (this.type == 'add' || this.type == 'edit') {
             let input = this.$refs['editContent'] as HTMLTextAreaElement;
             if (input) {
                 input.focus();
@@ -120,6 +120,7 @@ export default defineComponent({
         },
         submitSuccess() {
             this.$emit('update:type', 'view')
+            this.modelValue.content = this.modelValue.content.trim()
             this.original = _.cloneDeep(this.modelValue)
 
             if (this.success) {
