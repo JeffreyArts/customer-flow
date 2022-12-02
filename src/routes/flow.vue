@@ -1,5 +1,6 @@
 <template>
-    <div class="page" v-if="flow && flow.model">
+    <div class="page" v-if="flow && flow.model" 
+        :class="mode == 'edit' ? '__isEdit' : '__isView'">
         <div to="/" class="page-top-right">
                 
             <toggle :options="[{
@@ -358,7 +359,7 @@ export default defineComponent ({
     width: 50%;
     display: flex;
     justify-content: space-between;
-    transition: $transitionFast;
+    transition: $transitionDefault;
     .button {
         margin: 8px;
         svg {
@@ -368,4 +369,30 @@ export default defineComponent ({
     }
 }
 
+.page {
+    &.__isEdit {
+        .block-edit-footer {
+            .button {
+                translate: 0 -8px;
+                transition: $transitionDefault;
+                &:nth-child(2) {
+                    transition-delay: 0.04s;
+                }
+                &:nth-child(3) {
+                    transition-delay: 0.08s;
+                }
+            }
+        }   
+        
+        .block-container {
+            &:hover {
+                .block-edit-footer {
+                    .button {
+                        translate: 0 0px;
+                    }
+                }
+            }
+        }
+    }
+}
 </style>
