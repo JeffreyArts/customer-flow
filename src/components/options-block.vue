@@ -123,6 +123,7 @@ export default defineComponent({
             optionBlock: null as null | "options" | "communication" | "info",
             optionsConfirmed: [] as Array<string>,
             tempContentValue: "",
+            existingChildren: [] as Array<flowSchemeCommunication | flowSchemeInfo>,
         }
     },
     watch: {

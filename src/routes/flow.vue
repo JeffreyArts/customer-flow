@@ -1,85 +1,40 @@
 <template>
-    <div class="page" v-if="flow && flow.model" 
-        :class="mode == 'edit' ? '__isEdit' : '__isView'">
+    <div class="page" :class="mode === 'edit' ? '__isEdit' : '__isView'" v-if="flow && flow.model">
         <div to="/" class="page-top-right">
-                
-            <toggle :options="[{
-                id:'edit',
-                name: '🖊️',
-                selected: true,
-                bgcolor: '#fff',
-            }, {
-                id:'view',
-                name: '👁️',
-                selected: false,
-                bgcolor: '#fff',
-            }]" v-model="mode" @click="resetSchemeView"/>
+            <toggle :options="toggleOptions" v-model="mode" @click="resetSchemeView"/>
         </div>
 
         <header class="page-header">
             <h1 class="page-title">{{flow.model.userA}} {{flow.model.interaction}} {{flow.model.userB}}</h1>
         </header>
+
         <div class="flow-container" >
             <header class="flow-header">
-                <div class="flow-header-left">
-                    {{flow.model.userA}}
-                </div>
-                <div class="flow-header-right">
-                    {{flow.model.userB}}
-                </div>
+                <div class="flow-header-left" v-text="flow.model.userA" />
+                <div class="flow-header-right" v-text="flow.model.userB" />
             </header>
 
+            <!-- Show buttons on default when there is no scheme yet -->
             <div class="flow-buttons" v-if="mode == 'edit' && flow.model.scheme.length < 1">
-                <span class="flow-button">
-                    <button class="button" @click="addBlock('options')">
+                <span class="flow-button" v-for="(button, index) in addButtons" :key="index">
+                    <button class="button" @click="addBlock(button.type)">
                         <Icon icon="material-symbols:add-rounded" />
-                        Keuze toevoegen
-                    </button>
-                </span>
-                <span class="flow-button">
-                    <button class="button" @click="addBlock('communication')">
-                        <Icon icon="material-symbols:add-rounded" />
-                        Commmunicatie blok toevoegen
-                    </button>
-                </span>
-                <span class="flow-button">
-                    <button class="button" @click="addBlock('info')">
-                        <Icon icon="material-symbols:add-rounded" />
-                        Info blok toevoegen
+                        {{ button.label }} toevoegen
                     </button>
                 </span>
             </div>
 
             
             <div v-for="(block, i) in scheme" class="block-container" :ref="block.id" :key="i">
-                <InfoBlock
+            
+                <!-- This loads one of the blocks, InfoBlock, CommuncationBlock or OptionsBlock -->
+                <component 
+                    :is="getBlockType(block)" 
+                    v-model="scheme[i]" 
                     :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                    v-model="scheme[i]"
-                    :cancel="scheme[i].cancel"
-                    :success="addNewBlock"
-                    :type="scheme[i].editType"
-                    v-if="block.type == 'info'"
-                />
-
-                <CommunicationBlock
-                    :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                    v-model="scheme[i]"
-                    :cancel="scheme[i].cancel"
-                    :success="addNewBlock"
-                    :type="scheme[i].editType"
-                    v-if="block.type == 'communication'"
-                    />
-                    
-                    <!-- :options="{userA: flow.model.userA, userB: flow.model.userB}"  -->
-                <OptionsBlock
-                    :options="{userA: flow.model.userA, userB: flow.model.userB}" 
-                    v-model="scheme[i]"
-                    :scheme="flow.model.scheme"
-                    :cancel="scheme[i].cancel"
-                    :success="addNewBlock"
-                    :type="scheme[i].editType"
-                    v-if="block.type == 'options'"
-                />
+                    :cancel="scheme[i].cancel" 
+                    :success="addNewBlock" 
+                    :type="scheme[i].editType" />
                 
                 <footer class="block-edit-footer" v-if="mode == 'edit' && scheme[i].editType == 'view'">
                     <button class="button ghost c-red" @click="removeBlock(scheme[i])">verwijder</button>
@@ -87,23 +42,12 @@
                     <button class="button ghost c-blue" @click="scheme[i].editType = 'edit'">bewerk</button>
                 </footer>
 
+
                 <div class="flow-buttons" ref="flow-buttons" v-if="mode == 'edit' && addBlocks == i">
-                    <span class="flow-button">
-                        <button class="button" @click="addBlock('options', scheme[i].id)">
+                    <span class="flow-button" v-for="(button, index) in addButtons" :key="index">
+                        <button class="button" @click="addBlock(button.type, scheme[i].id)">
                             <Icon icon="material-symbols:add-rounded" />
-                            Keuze toevoegen
-                        </button>
-                    </span>
-                    <span class="flow-button">
-                        <button class="button" @click="addBlock('communication', scheme[i].id)">
-                            <Icon icon="material-symbols:add-rounded" />
-                            Communicatie blok toevoegen
-                        </button>
-                    </span>
-                    <span class="flow-button">
-                        <button class="button" @click="addBlock('info', scheme[i].id)">
-                            <Icon icon="material-symbols:add-rounded" />
-                            Info blok toevoegen
+                            {{ button.label }} toevoegen
                         </button>
                     </span>
                 </div>
@@ -114,8 +58,8 @@
 
 
 <script lang="ts">
-import {defineComponent, triggerRef} from "vue"
-import { flowObject, flowSchemeOption, flowSchemeCommunication, flowSchemeInfo } from "../../types";
+import { defineComponent } from "vue"
+import { flowSchemeOption, flowSchemeCommunication, flowSchemeInfo } from "../../types";
 import Toggle from "../components/toggle.vue"
 import CommunicationBlock from "../components/communication-block.vue"
 import OptionsBlock from "../components/options-block.vue"
@@ -190,7 +134,32 @@ export default defineComponent ({
         return {
             mode: "edit",
             addBlocks: 1024,
-            refreshKey: 0
+            refreshKey: 0,
+            toggleOptions: [{
+                id:'edit',
+                name: '🖊️',
+                selected: true,
+                bgcolor: '#fff',
+            }, {
+                id:'view',
+                name: '👁️',
+                selected: false,
+                bgcolor: '#fff',
+            }],
+            addButtons: [
+                {
+                    type: 'options',
+                    label: 'Keuze',
+                },
+                {
+                    type: 'communication',
+                    label: 'Communicatie blok',
+                },
+                {
+                    type: 'info',
+                    label: 'Info blok',
+                },
+            ] as Array<{type: 'options' | 'communication' | 'info', label: string}>,
         }
     },
     computed: {
@@ -262,6 +231,16 @@ export default defineComponent ({
                     }
                 })
             })
+        },
+        getBlockType(flowScheme: flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) {
+            switch (flowScheme.type) {
+                case 'options':
+                    return 'OptionsBlock'
+                case 'communication':
+                    return 'CommunicationBlock'
+                case 'info':
+                    return 'InfoBlock'
+            }
         },  
         resetSchemeView() {
             this.flow.selectedOptions = []
