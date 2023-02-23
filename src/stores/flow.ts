@@ -163,12 +163,32 @@ export const flowDataStore = defineStore({
                 if (_.isString(removedSchemeItem)) {
                     removedSchemeItem = _.find(this.model.scheme, {id: removedSchemeItem}) as flowSchemeOption | flowSchemeCommunication | flowSchemeInfo
                 }
-                // Update children by setting their parentId to the parentId of the removed item
-                _.each(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
-                    if (item.parentId == removedSchemeItem.id) {
-                        item.parentId = removedSchemeItem.parentId
+
+                // Flatten out children if removed item is a flowSchemeOption
+                if (removedSchemeItem.type === 'options') {
+                    const children = this.model.scheme.filter(item => item.parentId === removedSchemeItem.id)
+                    
+                    // Update the first child's parentId to the parent ID of the removed item
+                    if (children.length > 0) {
+                        children[0].parentId = removedSchemeItem.parentId
+
+                        // Loop over the remaining children and update their parentId to the previous child's id
+                        for (let i = 1; i < children.length; i++) {
+                        children[i].parentId = children[i-1].id
+                        }
+
+                        // Insert the children after the removed item in the scheme array
+                        const childIndex = this.model.scheme.findIndex(item => item.id === removedSchemeItem.id)
+                        this.model.scheme.splice(childIndex + 1, 0, ...children)
                     }
-                })
+                } else {   
+                    // Update children by setting their parentId to the parentId of the removed item
+                    _.each(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
+                        if (item.parentId == removedSchemeItem.id) {
+                            item.parentId = removedSchemeItem.parentId
+                        }
+                    })
+                }
                 
                 // Remove removedSchemeItem
                 this.model.scheme = _.filter(this.model.scheme, (item:flowSchemeOption | flowSchemeCommunication | flowSchemeInfo) => {
