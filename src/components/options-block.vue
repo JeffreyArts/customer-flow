@@ -45,6 +45,7 @@
                 <select class="input" @change="changeBlock" v-model="optionBlock">
                     <option value="communication">Communicatie blok</option>
                     <option value="info">Info blok</option>
+                    <option v-for="child in existingChildren" :key="child.id" :value="child.id">{{child.content}}</option>
                 </select>
             </div>
             
@@ -137,7 +138,10 @@ export default defineComponent({
             deep: false
         },
         flow: {
-            handler: function () {
+            handler: function (oldFlow, newFlow) {
+                console.log("FLOW",this.flow)
+                
+                // Deze if statemente moet gewijzigd worden, resultaat is goed. Maar moet op andere gronden getriggered worden
                 if (this.flow.selectedOptions.length == 0) {
                     this.selectedOption = 777
                 }
@@ -152,6 +156,17 @@ export default defineComponent({
         this.original = _.cloneDeep(this.modelValue)
         if (this.type == 'add') {
             let input = this.$refs['newOption'] as HTMLInputElement;
+            console.log(this.modelValue.parentId,this.flow.model.scheme)
+
+            this.existingChildren =_.find(this.flow.model.scheme, schemeItem => {
+                if (schemeItem.parentId == this.modelValue.id ) {
+                    return schemeItem;
+                }
+            })
+            if (!_.isArray(this.existingChildren)) {
+                this.existingChildren = [this.existingChildren]
+            }
+            console.log(this.existingChildren)
             if (input) {
                 input.focus();
             }
@@ -206,6 +221,7 @@ export default defineComponent({
         removeOption() {
             // remove option from options where this.selectedOption is the index
             this.modelValue.options.splice(this.selectedOption, 1)
+            console.log("B")
             this.selectedOption = 777
             this.flow.update()
         },
@@ -214,10 +230,13 @@ export default defineComponent({
                 this.selectedSchemeItem.content = this.tempContentValue
                 this.flow.update()
             }
+            console.log("A")
             this.selectedOption = 777
         },
         selectOption(index:number) {
+            console.log(this.modelValue.options)
             if (this.selectedOption == index) {
+                console.log("C")
                 this.selectedOption = 777
                 return
             }
@@ -246,6 +265,8 @@ export default defineComponent({
         },
         cancelOptionChanges() {
             this.selectedSchemeItem.content = this.originalOption.content
+
+            console.log("D")
             this.selectedOption = 777
         },
         addOptionsBlock() {
@@ -263,19 +284,27 @@ export default defineComponent({
             this.modelValue.editType = 'view'
         },
         async changeBlock(event: Event) {
-            if (this.optionBlock) {
-                if (this.modelValue.options[this.selectedOption].schemeId) {
+            if (this.optionBlock == 'communication' || this.optionBlock == 'info') {
+                
+                console.log("1.",this.modelValue.options[this.selectedOption],this.selectedOption)
+
+                if (this.modelValue.options[this.selectedOption]?.schemeId) {
                     await this.flow.removeSchemeItem(this.modelValue.options[this.selectedOption].schemeId)
                     this.modelValue.options[this.selectedOption].schemeId = undefined
                 }
-                
+                console.log("2.",this.modelValue.options[this.selectedOption],this.selectedOption)
+
                 this.flow.addSchemeItem(this.optionBlock, this.modelValue.id, {
                     editType: 'view',
                     position: this.modelValue.position
                 }).then(schemeItem => {
+                    console.log("3.",this.modelValue.options[this.selectedOption],this.selectedOption)
                     this.modelValue.options[this.selectedOption].schemeId = schemeItem.id
                     this.flow.update()
                 })
+            } else {
+                this.modelValue.options[this.selectedOption].schemeId = this.optionBlock
+                this.flow.update()                
             }
 
         },

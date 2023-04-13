@@ -207,6 +207,7 @@ export const flowDataStore = defineStore({
             } else {
                 this.selectedOptions.push(select)
             }
+            console.log("SELECT OPTION", this.selectedOptions)
         }
     },
     getters: {
